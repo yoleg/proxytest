@@ -16,6 +16,8 @@ import random
 import logging
 import requests
 
+__version__ = '0.1.2'
+
 # The URL to get via the proxy (override with the --url command-line parameter)
 DEFAULT_TEST_URL = 'http://example.com/'
 
@@ -38,7 +40,8 @@ SESSION = requests.Session()
 def main():
     """ Run the program from the command line."""
     # process command-line arguments
-    parser = argparse.ArgumentParser(description='Test if one or more HTTP proxies are working by requesting a webpage through each.')
+    parser = argparse.ArgumentParser('proxytest', description='Test if one or more HTTP proxies are working by requesting a webpage through each.')
+    parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
     parser.add_argument('proxies', metavar='PROXYHOST:STARTPORT[-ENDPORT]', type=str, nargs='+',
                         help='The proxy host/ports to use. -ENDPORT is optional. Example: 1.2.3.4:8080 1.2.3.4:8080-8090')
     parser.add_argument('--url', '-u', dest='test_url', type=str, default=DEFAULT_TEST_URL, help='The URL of the webpage to get (default: "{}").'.format(DEFAULT_TEST_URL))

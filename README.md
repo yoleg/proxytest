@@ -4,6 +4,8 @@ Simple command-line script to check if multiple proxies are up by fetching a web
 
 ## Installation:
 
+Requires Python 3.4 or above.
+
 ```
 pip3 install proxytest
 ```
