@@ -1,5 +1,9 @@
 """
-The aiohttp backend (request processor).
+The requests backend (request processor).
+
+Uses threading for concurrency.
+
+Requires "requests" package. Useful for Python 3.5.3 and below.
 """
 import functools
 import logging

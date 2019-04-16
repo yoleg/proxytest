@@ -1,3 +1,3 @@
-from .proxytest import __version__
 from .proxytest import *
+from .version import __version__
 

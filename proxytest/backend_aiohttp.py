@@ -1,12 +1,13 @@
 """
 The aiohttp backend (request processor function).
+
+Uses asyncio for concurrency.
+
+Requires "aiohttp" package. Useful for Python 3.5 or above.
 """
 import asyncio
 import logging
 from typing import List
-
-from aiohttp import ClientTimeout
-
 import aiohttp
 
 from ._info import RequestInfo, SessionConfig
@@ -24,7 +25,7 @@ def process_requests(request_infos: List[RequestInfo], config: SessionConfig = N
 async def _process_requests_coroutine(request_infos: List[RequestInfo], config: SessionConfig = None):
     # noinspection PyBroadException
     try:
-        async with aiohttp.ClientSession(timeout=ClientTimeout(total=config.timeout)) as session:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=config.timeout)) as session:
             batch_size = config.max_workers or len(request_infos)
             for i in range(0, len(request_infos), batch_size):
                 tasks = []

@@ -28,13 +28,18 @@ proxytest "http://user:pass@exampleproxy.com:3128" "111.222.333.444:8080-8082" "
 proxytest "1.2.3.4:1234" --url="https://example.com"  --print
 
 proxytest --help
+
+python3 -m proxytest --version
 ```
 
 ## Exit codes:
 
-* 1 - invalid input
-* 2 - at least one proxy failed
+* 0 - all proxy requests succeeded
+* 1 - one or more proxy requests failed
+* 2 - could not test proxies (e.g. due to input error or system error)
 
 ## Links:
 
-https://github.com/yoleg/proxytest
+Homepage: https://github.com/yoleg/proxytest
+
+A list of free proxies that may be useful for testing (not verified or in any way associated with this project): https://hidemyna.me/en/proxy-list/

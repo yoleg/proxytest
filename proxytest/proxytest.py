@@ -5,27 +5,28 @@ This is a simple script to test if a proxy is working.
 All it does is fetch a web page ("http://example.com/" by default) using the proxies.
 
 Usage examples:
-    python3 proxytest.py 1.2.3.4:8080-8082
 
-    python3 proxytest.py "1.2.3.4:1234" "22.33.44.55:8080-8082" --verbose --url="https://exampledomain.com/example"
+    $ python3 proxytest.py 1.2.3.4:8080-8082
 
-A random list of proxies I found (useful for testing):
-    https://hidemyna.me/en/proxy-list/
+    $ python3 -m proxytest "1.2.3.4:1234" "22.33.44.55:8080-8082" --verbose --url="https://exampledomain.com/example"
 
-Project Homepage: https:?/github.com/yoleg/proxytest
+    $ proxytest --help
+
+
+Project Homepage: https://github.com/yoleg/proxytest
 """
 import argparse
 import logging
 import random
 import sys
 import time
+from functools import partial
 from typing import Iterator, Callable, Any, List, Optional
 from urllib.parse import urlparse
 
-from proxytest._info import SessionConfig
-from ._info import RequestInfo
+from ._info import RequestInfo, SessionConfig
+from .version import __version__
 
-__version__ = '0.2.4'
 
 # The URL to get via the proxy (override with the --url command-line parameter)
 DEFAULT_TEST_URL = 'http://example.com/'
@@ -54,6 +55,12 @@ class ExitCode:
     success = 0
     fail = 1
     unable_to_test = 2
+
+
+# event namespace
+class Event:
+    request_start = 'start'
+    request_end = 'end'
 
 
 BackendProcessor = Callable[[List[RequestInfo], Optional[SessionConfig]], Any]
@@ -125,7 +132,7 @@ def main():
     LOGGER.info('Starting tests on {} proxies using {}.'.format(len(request_infos), backend))
     start_time = time.monotonic()
     backend_processor(request_infos, session_config)
-    unfinished_count = sum((1 for x in request_infos if x.result is None and x.error is None))
+    unfinished_count = sum((1 for x in request_infos if not x.succeeded))
     if unfinished_count:
         LOGGER.critical('{} proxies untested out of {} proxies needed'.format(unfinished_count, len(request_infos)))
         return ExitCode.unable_to_test
@@ -139,11 +146,12 @@ def main():
     return exit_code
 
 
-def _make_requests_from_options(options):
+def _make_requests_from_options(options) -> List[RequestInfo]:
     """ Convert command-line proxy URLs to RequestConfig objects. """
     request_infos = []
     valid = True
     i = 0
+
     for proxy_string in options.proxies:
         try:
             # convert port ranges such as '1.2.3.4:8080-8084' into full proxy_urls and add http:// prefix if needed
@@ -151,15 +159,15 @@ def _make_requests_from_options(options):
                 # create multiple requests if options.number > 1
                 for _ in range(0, options.number):
                     i += 1
-                    request = RequestInfo(
-                            name='request{}'.format(i),
-                            proxy_url=proxy_url,
-                            url=options.test_url,
-                            timeout=options.timeout,
-                            user_agent=options.agent or random.choice(USER_AGENTS),
-                            logger=LOGGER,
+                    request_info = RequestInfo(
+                        name='request{}'.format(i),
+                        proxy_url=proxy_url,
+                        url=options.test_url,
+                        user_agent=options.agent or random.choice(USER_AGENTS),
+                        start_callback=lambda request: _event_callback(request, options=options, event=Event.request_start),
+                        end_callback=lambda request: _event_callback(request, options=options, event=Event.request_end),
                     )
-                    request_infos.append(request)
+                    request_infos.append(request_info)
         except ValueError as e:
             valid = False
             LOGGER.error('Invalid proxy {}: {}'.format(repr(proxy_string), e))
@@ -168,6 +176,21 @@ def _make_requests_from_options(options):
     if not request_infos:
         LOGGER.error('No proxies to test!')
     return request_infos
+
+
+def _event_callback(request: RequestInfo, options, event: str=None):
+    string_to = request.url + (' directly' if not request.proxy_url else ' via proxy {}'.format(repr(request.proxy_url)))
+    prefix = request.name and '{}: '.format(request.name)
+    if event == Event.request_start:
+        LOGGER.info('{prefix}Connecting to {string_to}'.format(prefix=prefix, string_to=string_to))
+        return
+    if event == Event.request_end:
+        prefix = request.name and '{}: '.format(request.name)
+        duration = request.finished - request.started
+        if request.succeeded:
+            LOGGER.info('{prefix}Success! Connected to {string_to} ({duration:.2f}s)'.format(prefix=prefix, duration=duration, string_to=string_to))
+        else:
+            LOGGER.error('{prefix}Error connecting to {string_to}: {error} ({duration:.2f}s)'.format(prefix=prefix, error=request.error, duration=duration, string_to=string_to))
 
 
 def _configure_logging(options):
