@@ -1,19 +1,34 @@
 #!/usr/bin/env python3
+import os
 import sys
+import warnings
+
 from setuptools import setup, find_packages
 import proxytest
 
-if sys.version_info < (3, 4):
-    raise Exception('Python 3.4 or above required!')
+if sys.version_info < (3, 5):
+    warnings.warn('Python 3.5 or above is recommended!')
+
+with open(os.path.join(os.path.dirname(__file__), 'README.md'), "r") as fh:
+    long_description = fh.read()
+
+if sys.version_info > (3, 5, 3):
+    requirements = [
+        'aiohttp'
+    ]
+else:
+    requirements = [
+        'requests',
+        'typing',
+    ]
 
 setup(
     name='proxytest',
     version=proxytest.__version__,
-    description='A simple script to test if one or more proxies are working by fetching a webpage.',
-    long_description='',
+    description='A simple script to test if one or more HTTP proxies are working by fetching a webpage.',
+    long_description=long_description,
     classifiers=[
         "Environment :: Console",
-        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
@@ -31,5 +46,5 @@ setup(
             'proxytest = proxytest.proxytest:main',
         ]
     },
-    install_requires=['requests'],
+    install_requires=requirements,
 )
