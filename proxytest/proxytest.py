@@ -17,7 +17,7 @@ import logging
 import requests
 
 # The URL to get via the proxy (override with the --url command-line parameter)
-DEFAULT_TEST_URL = 'http://example.com'
+DEFAULT_TEST_URL = 'http://example.com/'
 
 # a random User Agent will be chosen from this list (copied from "howdoi" package)
 USER_AGENTS = [
@@ -38,9 +38,10 @@ SESSION = requests.Session()
 def main():
     """ Run the program from the command line."""
     # process command-line arguments
-    parser = argparse.ArgumentParser(description='Use a proxy to get a webpage')
-    parser.add_argument('proxies', metavar='PROXY:STARTPORT-ENDPORT', type=str, nargs='+', help='The proxy hosts (and port ranges) to use.')
-    parser.add_argument('--url', '-u', dest='test_url', type=str, default=DEFAULT_TEST_URL, help='The URL to get')
+    parser = argparse.ArgumentParser(description='Test if one or more HTTP proxies are working by requesting a webpage through each.')
+    parser.add_argument('proxies', metavar='PROXYHOST:STARTPORT[-ENDPORT]', type=str, nargs='+',
+                        help='The proxy host/ports to use. -ENDPORT is optional. Example: 1.2.3.4:8080 1.2.3.4:8080-8090')
+    parser.add_argument('--url', '-u', dest='test_url', type=str, default=DEFAULT_TEST_URL, help='The URL of the webpage to get (default: "{}").'.format(DEFAULT_TEST_URL))
     parser.add_argument('--verbose', '-v', dest='verbose', action='store_true', help='Enable verbose output.')
     parser.add_argument('--print', '-p', dest='print', action='store_true', help='Dump the contents of each webpage to stdout.')
     options = parser.parse_args()
