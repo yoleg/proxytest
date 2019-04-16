@@ -31,6 +31,15 @@ class proxytestTestCase(unittest.TestCase):
         proxies = list(expand_proxy_url('us-er:pa-s--s@1.2.3.4'))
         self.assertEqual(proxies, ['http://us-er:pa-s--s@1.2.3.4:8080'])
 
+        proxies = list(expand_proxy_url(':@1.2.3.4'))
+        self.assertEqual(proxies, ['http://:@1.2.3.4:8080'])
+
+        with self.assertRaises(ValueError):
+            list(expand_proxy_url(':@1.2.3.4:'))
+
+        with self.assertRaises(ValueError):
+            list(expand_proxy_url(''))
+
 
 if __name__ == '__main__':
     unittest.main()
