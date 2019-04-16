@@ -1,9 +1,20 @@
-proxytest
-=========
+# proxytest
 
 Simple command-line script to check if multiple proxies are up by fetching a webpage through each.
 
-Examples:
+## Installation:
+
+```
+pip3 install proxytest
+```
+
+or
+
+```
+python3 -m pip install proxytest
+```
+
+## Usage examples:
 
 ```
 proxytest 1.2.3.4:8080-8082
@@ -15,9 +26,11 @@ proxytest "1.2.3.4:1234" --url="https://example.com"  --print
 proxytest --help
 ```
 
-Exit codes:
+## Exit codes:
 
 * 1 - invalid input
 * 2 - at least one proxy failed
 
-Homepage: https://github.com/yoleg/proxytest
+## Links:
+
+https://github.com/yoleg/proxytest
