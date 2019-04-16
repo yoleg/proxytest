@@ -20,4 +20,4 @@ before_script:
   - flake8 . --count --exit-zero --max-complexity=10 --statistics
 
 # command to run tests
-script: nosetests
+script: pytest
