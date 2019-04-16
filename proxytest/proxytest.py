@@ -25,7 +25,7 @@ from urllib.parse import urlparse
 from proxytest._info import SessionConfig
 from ._info import RequestInfo
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 # The URL to get via the proxy (override with the --url command-line parameter)
 DEFAULT_TEST_URL = 'http://example.com/'
