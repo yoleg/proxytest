@@ -12,15 +12,11 @@ if sys.version_info < (3, 5):
 with open(os.path.join(os.path.dirname(__file__), 'README.md'), "r") as fh:
     long_description = fh.read()
 
-if sys.version_info > (3, 5, 3):
-    requirements = [
-        'aiohttp'
-    ]
-else:
-    requirements = [
-        'requests',
-        'typing',
-    ]
+install_requires = [
+    'aiohttp>=3.5.4,<4.0; python_version>"3.5.3"',
+    'requests>=2.21.0,<3.0; python_version<"3.5.3"',
+    'typing>=3.6.6,<4.0; python_version<"3.5.3"'
+]
 
 setup(
     name='proxytest',
@@ -46,5 +42,5 @@ setup(
             'proxytest = proxytest.proxytest:main',
         ]
     },
-    install_requires=requirements,
+    install_requires=install_requires,
 )

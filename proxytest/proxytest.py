@@ -25,7 +25,7 @@ from urllib.parse import urlparse
 from proxytest._info import SessionConfig
 from ._info import RequestInfo
 
-__version__ = '0.2.2'
+__version__ = '0.2.3'
 
 # The URL to get via the proxy (override with the --url command-line parameter)
 DEFAULT_TEST_URL = 'http://example.com/'
@@ -226,6 +226,9 @@ def _process_command_line():
 def expand_proxy_url(proxy_url: str) -> Iterator[str]:
     """ parse the proxies from command-line arguments, which are strings such as 'user:pass@1.2.3.4:8080-8084', generating single-port URLs """
     # separate host from ports
+    if not proxy_url:
+        raise ValueError('proxy_url is required')
+
     if not proxy_url.startswith('http'):
         proxy_url = 'http://' + proxy_url
     parsed = urlparse(proxy_url)
