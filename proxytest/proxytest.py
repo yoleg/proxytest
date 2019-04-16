@@ -132,12 +132,12 @@ def main():
     LOGGER.info('Starting tests on {} proxies using {}.'.format(len(request_infos), backend))
     start_time = time.monotonic()
     backend_processor(request_infos, session_config)
-    unfinished_count = sum((1 for x in request_infos if not x.succeeded))
+    unfinished_count = sum((1 for x in request_infos if not x.finished))
     if unfinished_count:
         LOGGER.critical('{} proxies untested out of {} proxies needed'.format(unfinished_count, len(request_infos)))
         return ExitCode.unable_to_test
 
-    fail_count = sum((1 for x in request_infos if x.error))
+    fail_count = sum((1 for x in request_infos if not x.succeeded))
     LOGGER.info('Done! {} proxies failed out of {} proxies tested in {:.2f}s'.format(fail_count, len(request_infos), time.monotonic() - start_time))
 
     # choose the exit code (0 on success)
