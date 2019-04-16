@@ -190,7 +190,7 @@ def _event_callback(request: RequestInfo, options, event: str=None):
         if request.succeeded:
             LOGGER.info('{prefix}Success! Connected to {string_to} ({duration:.2f}s)'.format(prefix=prefix, duration=duration, string_to=string_to))
         else:
-            LOGGER.error('{prefix}Error connecting to {string_to}: {error} ({duration:.2f}s)'.format(prefix=prefix, error=request.error, duration=duration, string_to=string_to))
+            LOGGER.warning('{prefix}Error connecting to {string_to}: {error} ({duration:.2f}s)'.format(prefix=prefix, error=request.error, duration=duration, string_to=string_to))
 
 
 def _configure_logging(options):
