@@ -38,17 +38,21 @@ python3 -m proxytest --version
 ```
 $ proxytest --help
 usage: proxytest [-h] [--version] [--agent AGENT]
-                 [--backend {aiohttp,requests}] [--debug] [--number NUMBER]
-                 [--print] [--format PRINT_FORMAT] [--timeout TIMEOUT]
-                 [--url TEST_URL] [--workers WORKERS] [--verbose]
-                 PROXYHOST:STARTPORT[-ENDPORT] [PROXYHOST:STARTPORT[-ENDPORT] ...]
+                 [--backend {aiohttp,requests}] [--number NUMBER]
+                 [--timeout TIMEOUT] [--url TEST_URL] [--workers WORKERS]
+                 [--print] [--format PRINT_FORMAT] [--quiet] [--debug]
+                 [--verbose]
+                 PROXYHOST:STARTPORT[-ENDPORT] [PROXYHOST:STARTPORT[-ENDPORT]
+                 ...]
 
-Test if one or more HTTP proxies are working by requesting a webpage through each.
+Test if one or more HTTP proxies are working by requesting a webpage through
+each.
 
 positional arguments:
   PROXYHOST:STARTPORT[-ENDPORT]
                         The proxy host/ports to use. -ENDPORT is optional.
-                        Example: 1.2.3.4:8080 1.2.3.4:8080-8090
+                        Example: 1.2.3.4:8080 1.2.3.4:8080-8090. Use "none" to
+                        call the webpage directly.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -58,16 +62,8 @@ optional arguments:
   --backend {aiohttp,requests}, -b {aiohttp,requests}
                         The backend to use. Choose from: aiohttp, requests.
                         (default: aiohttp)
-  --debug, -d           Enable debug output.
   --number NUMBER, -n NUMBER
                         Number of times to test each proxy (default: 1)
-  --print, -p           Print each webpage to stdout on a successful fetch.
-  --format PRINT_FORMAT, -f PRINT_FORMAT
-                        The output format to use for --print. Placeholders:
-                        duration, end_callback, error, finished, headers,
-                        name, proxy_url, result, result_flat, start_callback,
-                        started, url. (default: 'Content from {name}:
-                        "{result_flat:.100}..."')
   --timeout TIMEOUT, -t TIMEOUT
                         Timeout in seconds for each request. (default: 2)
   --url TEST_URL, -u TEST_URL
@@ -76,7 +72,19 @@ optional arguments:
   --workers WORKERS, -j WORKERS
                         Max number of concurrent requests. (default:
                         unlimited)
-  --verbose, -v         Enable verbose output.
+
+output:
+  --print, -p           Print each webpage to stdout on a successful fetch.
+  --format PRINT_FORMAT, -f PRINT_FORMAT
+                        The output format to use for --print. Placeholders:
+                        duration, end_callback, error, finished, headers,
+                        name, proxy_url, result, result_flat, start_callback,
+                        started, url. (default: 'Content from {name}:
+                        "{result_flat:.100}..."')
+  --quiet, -q           Suppress logging. Overrides --debug and --verbose, but
+                        --print will still work.
+  --debug, -d           Enable debug logging to stderr. Overrides --verbose.
+  --verbose, -v         Enable verbose logging to stderr.
 ```
 
 ## Backends:

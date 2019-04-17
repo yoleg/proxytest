@@ -7,10 +7,10 @@ Requires "aiohttp" package. Useful for Python 3.5 or above.
 """
 import asyncio
 import logging
-
 from typing import List
-
+# noinspection PyPackageRequirements
 import aiohttp
+
 from .request import RequestInfo, SessionConfig
 
 LOGGER = logging.getLogger('proxytest.aiohttp')
@@ -49,7 +49,7 @@ def _warn_once_https_proxy():
 
 
 async def _process_request(session: aiohttp.ClientSession, request: RequestInfo):
-    if request.proxy_url.startswith('https://'):
+    if request.proxy_url and request.proxy_url.startswith('https://'):
         _warn_once_https_proxy()
     request.set_started()
     try:

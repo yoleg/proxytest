@@ -12,7 +12,7 @@ import sys
 
 import argparse
 import time
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Iterable, Iterator, List, Optional, Union
 
 from .request import RequestInfo, SessionConfig
 from .urls import expand_proxy_url
@@ -20,9 +20,12 @@ from .version import __version__
 
 # The URL to get via the proxy (override with the --url command-line parameter)
 DEFAULT_TEST_URL = 'http://example.com/'
-DEFAULT_PROXY_PORT = '8080'  # default proxy port
+DEFAULT_PROXY_PORT = 8080  # default proxy port
 DEFAULT_TIMEOUT = 2  # default request timeout
 DEFAULT_PRINT_FORMAT = 'Content from {name}: "{result_flat:.100}..."'  # --print output format
+
+# when the NO_PROXY string is passed in as a proxy URL, calls the webpage directly without a proxy
+NO_PROXY = 'none'
 
 # a random User Agent will be chosen from this list (source: "howdoi")
 USER_AGENTS = [
@@ -100,8 +103,10 @@ def main() -> int:
         LOGGER.critical('No backends available! Try installing one of the following packages: {}'.format(', '.join(_not_installed)))
         return ExitCode.unable_to_test
 
-    request_infos = _make_requests_from_options(options)
-    if not request_infos:
+    try:
+        request_infos = list(_make_requests_from_options(options))
+        """:type: list[RequestInfo] """
+    except ValueError:  # details already logged in _make_requests_from_options
         return ExitCode.unable_to_test
 
     session_config = SessionConfig(
@@ -146,8 +151,12 @@ def _process_command_line():
                                      epilog='Return status: 0 on success, 1 if any proxy tests failed, or 2 if an error prevented any proxy tests from starting or finishing.'
                                      )
     parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
+
+    # required arguments - variable number of proxy URLs
     parser.add_argument('proxies', metavar='PROXYHOST:STARTPORT[-ENDPORT]', type=str, nargs='+',
-                        help='The proxy host/ports to use. -ENDPORT is optional. Example: 1.2.3.4:8080 1.2.3.4:8080-8090')
+                        help='The proxy host/ports to use. -ENDPORT is optional. Example: 1.2.3.4:8080 1.2.3.4:8080-8090. Use "{}" to call the webpage directly.'.format(NO_PROXY))
+
+    # optional arguments
     parser.add_argument('--agent', '-a', dest='agent', type=str,
                         help='The user agent string to use. (default: random)')
     parser.add_argument('--backend', '-b', dest='backend', type=str, choices=available_backends, default=default_backend,
@@ -156,25 +165,28 @@ def _process_command_line():
                                 also_text=('' if not _not_installed else 'For more backends, install: {}'.format(', '.join(_not_installed))),
                                 default=default_backend)
                         )
-    parser.add_argument('--debug', '-d', dest='debug', action='store_true',
-                        help='Enable debug output.')
     parser.add_argument('--number', '-n', dest='number', type=int, default=1,
                         help='Number of times to test each proxy (default: 1)')
-    parser.add_argument('--print', '-p', dest='print', action='store_true',
-                        help='Print each webpage to stdout on a successful fetch.')
-    placeholders = sorted(list(RequestInfo('_').__dict__) + ['result_flat', 'duration'])
-    parser.add_argument('--format', '-f', dest='print_format', type=str, default=DEFAULT_PRINT_FORMAT,
-                        help='The output format to use for --print. Placeholders: {}. (default: {!r})'.format(', '.join(placeholders), DEFAULT_PRINT_FORMAT))
     parser.add_argument('--timeout', '-t', dest='timeout', type=float, default=DEFAULT_TIMEOUT,
                         help='Timeout in seconds for each request. (default: {})'.format(DEFAULT_TIMEOUT))
     parser.add_argument('--url', '-u', dest='test_url', type=str, default=DEFAULT_TEST_URL,
                         help='The URL of the webpage to get. (default: {!r}).'.format(DEFAULT_TEST_URL))
     parser.add_argument('--workers', '-j', dest='workers', type=int, default=0,
                         help='Max number of concurrent requests. (default: unlimited)')
-    parser.add_argument('--quiet', '-q', dest='quiet', action='store_true',
-                        help='Suppress output, including errors.')
-    parser.add_argument('--verbose', '-v', dest='verbose', action='store_true',
-                        help='Enable verbose output.')
+
+    # stdout/ stderr options
+    group = parser.add_argument_group('output')
+    group.add_argument('--print', '-p', dest='print', action='store_true',
+                       help='Print each webpage to stdout on a successful fetch.')
+    placeholders = sorted(list(RequestInfo('_').__dict__) + ['result_flat', 'duration'])
+    group.add_argument('--format', '-f', dest='print_format', type=str, default=DEFAULT_PRINT_FORMAT,
+                       help='The output format to use for --print. Placeholders: {}. (default: {!r})'.format(', '.join(placeholders), DEFAULT_PRINT_FORMAT))
+    group.add_argument('--quiet', '-q', dest='quiet', action='store_true',
+                       help='Suppress logging. Overrides --debug and --verbose, but --print will still work.')
+    group.add_argument('--debug', '-d', dest='debug', action='store_true',
+                       help='Enable debug logging to stderr. Overrides --verbose.')
+    group.add_argument('--verbose', '-v', dest='verbose', action='store_true',
+                       help='Enable verbose logging to stderr. ')
     options = parser.parse_args()
     return options
 
@@ -201,42 +213,45 @@ def _configure_logging(options):
     )
 
 
-def _make_requests_from_options(options) -> List[RequestInfo]:
+def _make_requests_from_options(options) -> Iterator[RequestInfo]:
     """ Convert command-line proxy URLs to request configuration objects. """
-    request_infos = []
+    # create multiple requests for the same proxy if options.number > 1
+    for _ in range(0, options.number):
+        iterator = _expand_proxy_urls(options.proxies)
+        for i, proxy_url in enumerate(iterator):
+            yield RequestInfo(
+                    name='request{} ({})'.format(i, proxy_url or 'no proxy'),
+                    proxy_url=proxy_url or None,
+                    url=options.test_url,
+                    user_agent=options.agent or random.choice(USER_AGENTS),
+                    start_callback=lambda request: _event_callback(request, options=options, event=Event.request_start),
+                    end_callback=lambda request: _event_callback(request, options=options, event=Event.request_end),
+            )
+
+
+def _expand_proxy_urls(proxy_strings: Iterable[str]) -> Iterator[Union[str]]:
+    """ Convert command-line proxy inputs to valid proxy URLs (or empty string if proxy was NO_PROXY) """
     valid = True
-    i = 0
-    for proxy_string in options.proxies:
+    for proxy_string in proxy_strings:
+        if proxy_string == NO_PROXY:
+            yield ''
+            continue
         try:
             # expand shorthand proxy URLs such as '1.2.3.4:8080-8084'
-            for proxy_url in expand_proxy_url(proxy_string):
-                # create multiple requests for the same proxy if options.number > 1
-                for _ in range(0, options.number):
-                    i += 1
-                    request_info = RequestInfo(
-                            name='request{}'.format(i),
-                            proxy_url=proxy_url,
-                            url=options.test_url,
-                            user_agent=options.agent or random.choice(USER_AGENTS),
-                            start_callback=lambda request: _event_callback(request, options=options, event=Event.request_start),
-                            end_callback=lambda request: _event_callback(request, options=options, event=Event.request_end),
-                    )
-                    request_infos.append(request_info)
+            yield from expand_proxy_url(proxy_string, default_port=DEFAULT_PROXY_PORT)
         except ValueError as e:
             valid = False
-            LOGGER.error('Invalid proxy {}: {}'.format(repr(proxy_string), e))
+            LOGGER.error('Invalid proxy {!r}: {}'.format(proxy_string, str(e) or repr(e)))
+    # wait for all proxies to be checked (and errors logged) before raising
     if not valid:
-        return []
-    if not request_infos:
-        LOGGER.error('No proxies to test!')
-    return request_infos
+        raise ValueError('Invalid proxies')
 
 
 def _event_callback(request: RequestInfo, options, event: str = None):
     """ Handling for request start/ error/ success. """
-    string_to = request.url + (' directly' if not request.proxy_url else ' via proxy {}'.format(repr(request.proxy_url)))
+    # log start of request
     if event == Event.request_start:
-        LOGGER.info('{name}: Connecting to {string_to}'.format(string_to=string_to, name=request.name))
+        LOGGER.info('{name}: Connecting to {url}'.format(url=request.url, name=request.name))
         return
 
     assert event == Event.request_end, event
@@ -244,11 +259,11 @@ def _event_callback(request: RequestInfo, options, event: str = None):
 
     # warn if failed
     if not request.succeeded:
-        LOGGER.warning('{name}: Error connecting to {string_to}: {error} ({duration:.2f}s)'.format(name=request.name, error=request.error, duration=duration, string_to=string_to))
+        LOGGER.warning('{name}: Error connecting to {url}: {error} ({duration:.2f}s)'.format(name=request.name, error=request.error, duration=duration, url=request.url))
         return
 
     # log and optionally dump content on success
-    LOGGER.info('{name}: Success! Got {length} characters from {string_to} ({duration:.2f}s)'.format(length=len(request.result), name=request.name, duration=duration, string_to=string_to))
+    LOGGER.info('{name}: Success! Got {length} characters from {url} ({duration:.2f}s)'.format(length=len(request.result), name=request.name, duration=duration, url=request.url))
     if options.print:
         print(options.print_format.format(
                 result_flat=' '.join(str(request.result).splitlines()),
