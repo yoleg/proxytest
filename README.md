@@ -38,6 +38,10 @@ python3 -m proxytest --version
 * 1 - one or more proxy requests failed
 * 2 - could not test proxies (e.g. due to input error or system error)
 
+## Build Status:
+
+[![Build Status](https://travis-ci.org/yoleg/proxytest.svg?branch=master)](https://travis-ci.org/yoleg/proxytest)
+
 ## Links:
 
 Homepage: https://github.com/yoleg/proxytest
