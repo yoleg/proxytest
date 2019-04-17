@@ -288,8 +288,3 @@ def expand_proxy_url(proxy_url: str) -> Iterator[str]:
     # yield individual 'HOST:PORT' strings
     for port in range(start_port, end_port + 1):
         yield (parsed.scheme) + '://' + (user_pass and user_pass + '@') + host + ':' + str(port)
-
-
-if __name__ == '__main__':
-    exit_code = main()
-    sys.exit(exit_code)
