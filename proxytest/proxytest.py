@@ -27,7 +27,6 @@ from urllib.parse import urlparse
 from ._info import RequestInfo, SessionConfig
 from .version import __version__
 
-
 # The URL to get via the proxy (override with the --url command-line parameter)
 DEFAULT_TEST_URL = 'http://example.com/'
 DEFAULT_PROXY_PORT = '8080'  # default proxy port
@@ -115,8 +114,8 @@ def main():
         return ExitCode.unable_to_test
 
     session_config = SessionConfig(
-        timeout=options.timeout,
-        max_workers=options.workers,
+            timeout=options.timeout,
+            max_workers=options.workers,
     )
 
     # choose the backend to use
@@ -160,12 +159,12 @@ def _make_requests_from_options(options) -> List[RequestInfo]:
                 for _ in range(0, options.number):
                     i += 1
                     request_info = RequestInfo(
-                        name='request{}'.format(i),
-                        proxy_url=proxy_url,
-                        url=options.test_url,
-                        user_agent=options.agent or random.choice(USER_AGENTS),
-                        start_callback=lambda request: _event_callback(request, options=options, event=Event.request_start),
-                        end_callback=lambda request: _event_callback(request, options=options, event=Event.request_end),
+                            name='request{}'.format(i),
+                            proxy_url=proxy_url,
+                            url=options.test_url,
+                            user_agent=options.agent or random.choice(USER_AGENTS),
+                            start_callback=lambda request: _event_callback(request, options=options, event=Event.request_start),
+                            end_callback=lambda request: _event_callback(request, options=options, event=Event.request_end),
                     )
                     request_infos.append(request_info)
         except ValueError as e:
@@ -178,7 +177,7 @@ def _make_requests_from_options(options) -> List[RequestInfo]:
     return request_infos
 
 
-def _event_callback(request: RequestInfo, options, event: str=None):
+def _event_callback(request: RequestInfo, options, event: str = None):
     string_to = request.url + (' directly' if not request.proxy_url else ' via proxy {}'.format(repr(request.proxy_url)))
     prefix = request.name and '{}: '.format(request.name)
     if event == Event.request_start:

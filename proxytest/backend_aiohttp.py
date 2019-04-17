@@ -47,4 +47,3 @@ async def _process_request(session: aiohttp.ClientSession, request: RequestInfo)
         request.set_finished(error=str(e))
     else:
         request.set_finished(result=text)
-

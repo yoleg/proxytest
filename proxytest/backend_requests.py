@@ -35,7 +35,7 @@ def process_requests(request_infos: List[RequestInfo], config: SessionConfig):
             executor.submit(processor, request)
 
 
-def _process_request(request: RequestInfo, session: requests.Session, timeout: float=None):
+def _process_request(request: RequestInfo, session: requests.Session, timeout: float = None):
     """ Make a GET request to the URL, optionally using a proxy URL."""
     proxies = None
     if request.proxy_url:
