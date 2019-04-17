@@ -30,7 +30,6 @@ from .version import __version__
 DEFAULT_TEST_URL = 'http://example.com/'
 DEFAULT_PROXY_PORT = '8080'  # default proxy port
 DEFAULT_TIMEOUT = 2  # default request timeout
-DEFAULT_WORKERS = 3  # default max workers
 
 # a random User Agent will be chosen from this list (source: "howdoi")
 USER_AGENTS = [
