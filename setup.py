@@ -13,7 +13,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md'), "r") as fh:
     long_description = fh.read()
 
 install_requires = [
-    'aiohttp>=3.5.4,<4.0; python_version>"3.5.3"',
+    'aiohttp>=3.5.4,<4.0; python_version>="3.5.3"',
     'requests>=2.21.0,<3.0; python_version<"3.5.3"',
     'typing>=3.6.6,<4.0; python_version<"3.5.3"'
 ]
