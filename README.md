@@ -13,14 +13,14 @@ Requires Python 3 (tested on 3.5 and above).
 python3 -m pip install proxytest
 ```
 
-## Usage examples:
+## Examples:
 
 ```
-proxytest 1.2.3.4:8080 1.2.3.4:8081
+proxytest http://1.2.3.4:8080 http://1.2.3.4:8081
 
 proxytest 1.2.3.4:8080-8081  # same as above
 
-proxytest "http://user:pass@exampleproxy.com:3128" "111.222.333.444:8080-8082" "111.222.333.444:8085-8090" --verbose
+proxytest -v -n 10 "http://user:pass@exampleproxy.com:3128" "111.222.333.444:8080-8082" "111.222.333.444:8085-8090"
 
 proxytest "1.2.3.4:1234" --url="https://example.com"  --print
 
@@ -28,6 +28,52 @@ proxytest --help
 
 python3 -m proxytest --version
 ```
+
+## Command-line Arguments:
+
+```
+$ proxytest --help
+usage: proxytest [-h] [--version] [--agent AGENT]
+                 [--backend {aiohttp,requests}] [--debug] [--number NUMBER]
+                 [--print] [--timeout TIMEOUT] [--url TEST_URL]
+                 [--workers WORKERS] [--verbose]
+                 PROXYHOST:STARTPORT[-ENDPORT] [PROXYHOST:STARTPORT[-ENDPORT]
+                 ...]
+
+Test if one or more HTTP proxies are working by requesting a webpage through
+each.
+
+positional arguments:
+  PROXYHOST:STARTPORT[-ENDPORT]
+                        The proxy host/ports to use. -ENDPORT is optional.
+                        Example: 1.2.3.4:8080 1.2.3.4:8080-8090
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+  --agent AGENT, -a AGENT
+                        The user agent string to use. (default: random)
+  --backend {aiohttp,requests}, -b {aiohttp,requests}
+                        The backend to use. Choose from: aiohttp, requests.
+                        (default: aiohttp)
+  --debug, -d           Enable debug output.
+  --number NUMBER, -n NUMBER
+                        Number of times to test each proxy (default: 1)
+  --print, -p           Dump the contents of each webpage to stdout.
+  --timeout TIMEOUT, -t TIMEOUT
+                        Timeout in seconds for each request. (default: 2)
+  --url TEST_URL, -u TEST_URL
+                        The URL of the webpage to get. (default:
+                        "http://example.com/").
+  --workers WORKERS, -j WORKERS
+                        Max number of concurrent requests. (default:
+                        unlimited)
+  --verbose, -v         Enable verbose output.
+```
+
+## Output:
+
+No output on success unless verbose or debug mode enabled.
 
 ## Exit codes:
 
