@@ -1,5 +1,8 @@
 # proxytest
 
+[![Build Status](https://travis-ci.org/yoleg/proxytest.svg?branch=master)](https://travis-ci.org/yoleg/proxytest)
+[![PyPI version](https://badge.fury.io/py/proxytest.svg)](https://badge.fury.io/py/proxytest)
+
 Simple command-line script to check if multiple proxies are up by fetching a webpage through each.
 
 ## Installation:
@@ -37,10 +40,6 @@ python3 -m proxytest --version
 * 0 - all proxy requests succeeded
 * 1 - one or more proxy requests failed
 * 2 - could not test proxies (e.g. due to input error or system error)
-
-## Build Status:
-
-[![Build Status](https://travis-ci.org/yoleg/proxytest.svg?branch=master)](https://travis-ci.org/yoleg/proxytest)
 
 ## Links:
 
