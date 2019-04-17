@@ -47,6 +47,7 @@ def _process_request(request: RequestInfo, session: requests.Session, timeout: f
     try:
         response = session.request('GET', url=request.url, headers=request.headers,
                                    proxies=proxies, allow_redirects=True, timeout=timeout)
+        response.raise_for_status()
     except Exception as e:
         request.set_finished(error=e)
     else:
