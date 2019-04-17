@@ -171,6 +171,8 @@ def _process_command_line():
                         help='The URL of the webpage to get. (default: {!r}).'.format(DEFAULT_TEST_URL))
     parser.add_argument('--workers', '-j', dest='workers', type=int, default=0,
                         help='Max number of concurrent requests. (default: unlimited)')
+    parser.add_argument('--quiet', '-q', dest='quiet', action='store_true',
+                        help='Suppress output, including errors.')
     parser.add_argument('--verbose', '-v', dest='verbose', action='store_true',
                         help='Enable verbose output.')
     options = parser.parse_args()
@@ -179,20 +181,23 @@ def _process_command_line():
 
 def _configure_logging(options):
     """ configure logging to stream output """
-    if options.debug:
+    handler = logging.StreamHandler(sys.stderr)
+    log_format = LOG_FORMAT_DEFAULT
+    log_level = logging.WARNING
+    if options.quiet:
+        handler = logging.NullHandler()
+    elif options.debug:
         log_level = logging.DEBUG
         log_format = LOG_FORMAT_VERBOSE
     elif options.verbose:
         log_level = logging.INFO
         log_format = LOG_FORMAT_VERBOSE
-    else:
-        log_level = logging.INFO + 1
-        log_format = LOG_FORMAT_DEFAULT
     logging.basicConfig(
             level=log_level,
             format=log_format,
             datefmt=LOG_DATE_FORMAT,
-            style='{'
+            style='{',
+            handlers=[handler]
     )
 
 
