@@ -20,7 +20,7 @@ proxytest http://1.2.3.4:8080 http://1.2.3.4:8081
 
 proxytest 1.2.3.4:8080-8081  # same as above
 
-proxytest -v -n 10 "http://user:pass@exampleproxy.com:3128" "111.222.333.444:8080-8082" "111.222.333.444:8085-8090"
+proxytest -v -n 10 --timeout 1 "http://user:pass@exampleproxy.com:3128" "111.222.333.444:8080-8082" "111.222.333.444:8085-8090"
 
 proxytest "1.2.3.4:1234" --url="https://example.com"  --print
 

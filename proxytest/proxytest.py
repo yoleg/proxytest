@@ -15,13 +15,12 @@ Usage examples:
 
 Project Homepage: https://github.com/yoleg/proxytest
 """
-import argparse
 import logging
 import random
 import sys
+import argparse
 import time
-from functools import partial
-from typing import Iterator, Callable, Any, List, Optional
+from typing import Any, Callable, Iterator, List, Optional
 from urllib.parse import urlparse
 
 from ._info import RequestInfo, SessionConfig
@@ -215,7 +214,10 @@ def _process_command_line():
     available_backends = sorted(backends)
     default_backend = 'aiohttp' if 'aiohttp' in backends else (available_backends and available_backends[0] or 'None available!')
 
-    parser = argparse.ArgumentParser('proxytest', description='Test if one or more HTTP proxies are working by requesting a webpage through each.')
+    parser = argparse.ArgumentParser('proxytest',
+                                     description='Test if one or more HTTP proxies are working by requesting a webpage through each.',
+                                     epilog='Return status: 0 on success, 1 if any proxy tests failed, or 2 if an error prevented any proxy tests from starting or finishing.'
+                                     )
     parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
     parser.add_argument('proxies', metavar='PROXYHOST:STARTPORT[-ENDPORT]', type=str, nargs='+',
                         help='The proxy host/ports to use. -ENDPORT is optional. Example: 1.2.3.4:8080 1.2.3.4:8080-8090')
