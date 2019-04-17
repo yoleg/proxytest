@@ -124,17 +124,17 @@ def main() -> int:
         return ExitCode.unable_to_test
 
     # run the tests
-    LOGGER.info('Starting tests on {} proxies using {}.'.format(len(request_infos), backend))
+    LOGGER.info('Starting {} requests using {}.'.format(len(request_infos), backend))
     start_time = time.monotonic()
     assert callable(backend_processor), repr(backend_processor)
     backend_processor(request_infos, session_config)
     unfinished_count = sum((1 for x in request_infos if not x.finished))
     if unfinished_count:
-        LOGGER.critical('{} proxies untested out of {} proxies needed'.format(unfinished_count, len(request_infos)))
+        LOGGER.error('{} out of {} requests unfinished'.format(unfinished_count, len(request_infos)))
         return ExitCode.unable_to_test
 
     fail_count = sum((1 for x in request_infos if not x.succeeded))
-    LOGGER.info('Done! {} proxies failed out of {} proxies tested in {:.2f}s'.format(fail_count, len(request_infos), time.monotonic() - start_time))
+    LOGGER.info('Done! {} requests failed out of {} requests total in {:.2f}s'.format(fail_count, len(request_infos), time.monotonic() - start_time))
 
     # choose the exit code (0 on success)
     # noinspection PyShadowingNames
