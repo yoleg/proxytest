@@ -35,13 +35,11 @@ python3 -m proxytest --version
 $ proxytest --help
 usage: proxytest [-h] [--version] [--agent AGENT]
                  [--backend {aiohttp,requests}] [--debug] [--number NUMBER]
-                 [--print] [--timeout TIMEOUT] [--url TEST_URL]
-                 [--workers WORKERS] [--verbose]
-                 PROXYHOST:STARTPORT[-ENDPORT] [PROXYHOST:STARTPORT[-ENDPORT]
-                 ...]
+                 [--print] [--format PRINT_FORMAT] [--timeout TIMEOUT]
+                 [--url TEST_URL] [--workers WORKERS] [--verbose]
+                 PROXYHOST:STARTPORT[-ENDPORT] [PROXYHOST:STARTPORT[-ENDPORT] ...]
 
-Test if one or more HTTP proxies are working by requesting a webpage through
-each.
+Test if one or more HTTP proxies are working by requesting a webpage through each.
 
 positional arguments:
   PROXYHOST:STARTPORT[-ENDPORT]
@@ -59,17 +57,28 @@ optional arguments:
   --debug, -d           Enable debug output.
   --number NUMBER, -n NUMBER
                         Number of times to test each proxy (default: 1)
-  --print, -p           Dump the contents of each webpage to stdout.
+  --print, -p           Print each webpage to stdout on a successful fetch.
+  --format PRINT_FORMAT, -f PRINT_FORMAT
+                        The output format to use for --print. Placeholders:
+                        duration, end_callback, error, finished, headers,
+                        name, proxy_url, result, result_flat, start_callback,
+                        started, url. (default: 'Content from {name}:
+                        "{result_flat:.100}..."')
   --timeout TIMEOUT, -t TIMEOUT
                         Timeout in seconds for each request. (default: 2)
   --url TEST_URL, -u TEST_URL
                         The URL of the webpage to get. (default:
-                        "http://example.com/").
+                        'http://example.com/').
   --workers WORKERS, -j WORKERS
                         Max number of concurrent requests. (default:
                         unlimited)
   --verbose, -v         Enable verbose output.
 ```
+
+## Backends:
+
+* aiohttp (default) - asyncio support
+* requests - useful for Python 3.4, supports HTTPS proxies
 
 ## Output:
 

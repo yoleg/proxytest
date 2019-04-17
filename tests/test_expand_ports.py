@@ -2,10 +2,10 @@
 """ Tests for proxytest. """
 import unittest
 
-from proxytest.proxytest import expand_proxy_url
+from proxytest.urls import expand_proxy_url
 
 
-class proxytestTestCase(unittest.TestCase):
+class ProxyTestURLsTestCase(unittest.TestCase):
     def test_process_proxy_string(self):
         proxies = list(expand_proxy_url('1.2.3.4:5678-5680'))
         self.assertEqual(proxies, ['http://1.2.3.4:5678', 'http://1.2.3.4:5679', 'http://1.2.3.4:5680'])

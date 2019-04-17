@@ -3,7 +3,7 @@ The requests backend (request processor).
 
 Uses threading for concurrency.
 
-Requires "requests" package. Useful for Python 3.5.3 and below.
+Requires "requests" package. Useful for Python 3.5.3 and below. Supports https proxies, unlike aiohttp (as of 3.5.4).
 """
 import functools
 import logging
@@ -13,7 +13,7 @@ from typing import List
 # noinspection PyPackageRequirements
 import requests
 
-from ._info import RequestInfo, SessionConfig
+from .request import RequestInfo, SessionConfig
 
 LOGGER = logging.getLogger('proxytest.requests')
 
@@ -48,6 +48,6 @@ def _process_request(request: RequestInfo, session: requests.Session, timeout: f
         response = session.request('GET', url=request.url, headers=request.headers,
                                    proxies=proxies, allow_redirects=True, timeout=timeout)
     except Exception as e:
-        request.set_finished(error=str(e))
+        request.set_finished(error=e)
     else:
         request.set_finished(result=response.text)

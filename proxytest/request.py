@@ -15,7 +15,8 @@ class SessionConfig(object):
 class RequestInfo(object):
     @property
     def succeeded(self):
-        return self.finished is not None and self.error is None
+        assert self.finished, 'succeeded called before finished! started={!r}, finished={!r}'.format(self.started, self.finished)
+        return self.error is None
 
     def __init__(self, url: str, proxy_url: str = None, user_agent: str = None, name: str = None,
                  start_callback: Callable[['RequestInfo'], Any] = None, end_callback: Callable[['RequestInfo'], Any] = None):
@@ -52,9 +53,9 @@ class RequestInfo(object):
         if self.start_callback:
             self.start_callback(self)
 
-    def set_finished(self, error: str = None, result: str = None):
+    def set_finished(self, error: Exception = None, result: str = None):
         self.finished = time.monotonic()
-        self.error = error
+        self.error = None if not error else (str(error) or repr(error))
         self.result = result
         if self.end_callback:
             self.end_callback(self)

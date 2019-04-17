@@ -7,10 +7,11 @@ Requires "aiohttp" package. Useful for Python 3.5 or above.
 """
 import asyncio
 import logging
-from typing import List
-import aiohttp
 
-from ._info import RequestInfo, SessionConfig
+from typing import List
+
+import aiohttp
+from .request import RequestInfo, SessionConfig
 
 LOGGER = logging.getLogger('proxytest.aiohttp')
 
@@ -37,13 +38,25 @@ async def _process_requests_coroutine(request_infos: List[RequestInfo], config: 
         LOGGER.exception('Exception processing requests!')
 
 
+_warned = False
+
+
+def _warn_once_https_proxy():
+    global _warned
+    if not _warned:
+        LOGGER.warning('aiohttp backend does not support https proxies (as of aiohttp 3.5.4). Try the "requests" backend.')
+        _warned = True
+
+
 async def _process_request(session: aiohttp.ClientSession, request: RequestInfo):
+    if request.proxy_url.startswith('https://'):
+        _warn_once_https_proxy()
     request.set_started()
     try:
         async with session.get(request.url, proxy=request.proxy_url, headers=request.headers) as response:
             response.raise_for_status()
             text = await response.text()
     except Exception as e:
-        request.set_finished(error=str(e))
+        request.set_finished(error=e)
     else:
         request.set_finished(result=text)
