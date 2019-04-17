@@ -3,11 +3,15 @@
 [![Build Status](https://travis-ci.org/yoleg/proxytest.svg?branch=master)](https://travis-ci.org/yoleg/proxytest)
 [![PyPI version](https://badge.fury.io/py/proxytest.svg)](https://badge.fury.io/py/proxytest)
 
-Simple command-line script to check if multiple proxies are up by fetching a webpage through each.
+Simple command-line script to check if multiple proxies are up by fetching a webpage through each (in parallel).
+
+The only advantage of this tool over a commandline HTTP client (such as httpie) is that it provides an easy way to check multiple proxies at once.
+
+But the *main purpose* of proxytest is to be a Python coding sample, so the code is much more complicated than it needs to be. :)
 
 ## Installation:
 
-Requires Python 3 (tested on 3.5 and above).
+Requires Python 3.4 or above.
 
 ```
 python3 -m pip install proxytest
@@ -77,7 +81,7 @@ optional arguments:
 
 ## Backends:
 
-* aiohttp (default) - asyncio support
+* aiohttp (default) - asyncio support (requires Python 3.5.3 or above)
 * requests - useful for Python 3.4, supports HTTPS proxies
 
 ## Output:

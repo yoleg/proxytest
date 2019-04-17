@@ -3,7 +3,7 @@ The requests backend (request processor).
 
 Uses threading for concurrency.
 
-Requires "requests" package. Useful for Python 3.5.3 and below. Supports https proxies, unlike aiohttp (as of 3.5.4).
+Requires "requests" package. Useful for Python 3.4. Supports https proxies, unlike aiohttp (as of aiohttp 3.5.4).
 """
 import functools
 import logging
