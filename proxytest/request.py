@@ -22,6 +22,10 @@ class SessionInfo(object):
 
 
 class RequestInfo(object):
+    @property
+    def log_key(self):
+        return '{} ({})'.format(self.config.name, self.config.proxy_url)
+
     def __init__(self, config: 'RequestConfig'):
         self.config = config
         """:type: RequestConfig"""
@@ -32,6 +36,9 @@ class RequestInfo(object):
         data = {}
         data.update(self.config.__dict__)
         data.update(self.status.__dict__)
+        data['log_key'] = str(self.log_key)
+        data['status'] = str(self.status)
+        data['config'] = str(self.config)
         return data
 
     def __str__(self):
@@ -97,7 +104,6 @@ class RequestStatus(object):
 
 class RequestConfig(object):
     """ Request configuration. Should not change after start. """
-
     def __init__(self, url: str, proxy_url: str = None, user_agent: str = None, name: str = None,
                  start_callback: Callable[['RequestInfo'], Any] = None, end_callback: Callable[['RequestInfo'], Any] = None):
         """
@@ -120,6 +126,6 @@ class RequestConfig(object):
             self.headers['User-Agent'] = user_agent
 
     def __repr__(self):
-        return ', '.join('{}={}'.format(k, v) for k, v in sorted(self.__dict__))
+        return ', '.join(('{}={}'.format(k, v) for k, v in sorted(self.__dict__.items())))
 
     __str__ = __repr__

@@ -24,7 +24,7 @@ LOGGER = logging.getLogger('proxytest')
 DEFAULT_TEST_URL = 'http://example.com/'
 DEFAULT_PROXY_PORT = 8080  # default proxy port
 DEFAULT_TIMEOUT = 2  # default request timeout
-DEFAULT_PRINT_FORMAT = 'Content from {name}: "{result_flat:.100}..."'  # --print output format
+DEFAULT_PRINT_FORMAT = 'Content from {log_key}: "{result_flat:.100}..."'  # --print output format
 
 # when the NO_PROXY string is passed in as a proxy URL, calls the webpage directly without a proxy
 NO_PROXY = 'none'
@@ -231,8 +231,9 @@ def _event_callback(request: RequestInfo, options, event: str = None):
     # log start of request
     config = request.config
     status = request.status
+    data = request.get_placeholders()
     if event == Event.request_start:
-        LOGGER.info('{name}: Connecting to {url}'.format(url=config.url, name=config.name))
+        LOGGER.info('{log_key}: Connecting to {url}'.format(**data))
         return
 
     assert event == Event.request_end, event
@@ -240,13 +241,12 @@ def _event_callback(request: RequestInfo, options, event: str = None):
 
     # warn if failed
     if not status.succeeded:
-        LOGGER.warning(
-                '{name}: Error connecting to {url}: {error} ({duration:.2f}s)'.format(name=config.name, error=status.error, duration=duration, url=config.url))
+        LOGGER.warning('{log_key}: Error connecting to {url}: {error} ({duration:.2f}s)'.format(duration=duration, **data))
         return
 
     # log and optionally dump content on success
-    LOGGER.info('{name}: Success! Got {length} characters from {url} ({duration:.2f}s)'.format(
-            length=len(status.result), name=config.name, duration=duration, url=config.url))
+    LOGGER.info('{log_key}: Success! Got {length} characters from {url} ({duration:.2f}s)'.format(
+            length=len(status.result), duration=duration, **data))
     if options.print:
         print(options.print_format.format(
                 result_flat=' '.join(str(status.result).splitlines()),
