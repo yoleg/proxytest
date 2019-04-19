@@ -14,8 +14,7 @@ positional argument. They not need to return anything.
     def my_backend(info: SessionInfo):
         pass
 
-Backends add their processors to the REGISTRY (or update SUGGESTED_PACKAGES)
-by using any of the tools provided here:
+Backends add their processors to the REGISTRY by using any of the tools provided here:
 
     1. calling register("name", processor)
     2. decorating the processor: @BackendDecorator or @BackendDecorator("name")
@@ -23,13 +22,13 @@ by using any of the tools provided here:
     4. using BackendMeta as a metaclass
     5. subclassing AbstractBackend - clean and easy!
 
-find_backends() finds and imports all modules in the namespace package "proxytest.backends".
-
 When a backend module is imported, it can optionally raise the following exceptions:
 
     * NotSupportedError if not available on this system (e.g. async/ await syntax on Python 3.4)
     * MissingDependenciesError(list_of_suggested_packages) if missing a required package
+        - this will update SUGGESTED_PACKAGES
 
+find_backends() finds and imports all modules in the namespace package "proxytest.backends".
 """
 import abc
 import contextlib
@@ -39,11 +38,10 @@ import logging
 import pkgutil
 from typing import Any, Callable, Iterable, Union
 
-# type hints
-from .request import SessionInfo
+from .request import SessionInfo  # for type hints
 
-LOGGER = logging.getLogger('proxytest.backend')
-BackendInterface = Callable[[SessionInfo], Any]
+BackendInterface = Callable[[SessionInfo], Any]  # for type hints only
+
 SUGGESTED_PACKAGES = []
 """ List of uninstalled packages that would add backend options. """
 REGISTRY = {}
@@ -52,6 +50,9 @@ backend name to backend
 
 :type: dict[str, BackendInterface]
 """
+
+LOGGER = logging.getLogger('proxytest.backend')
+
 _IMPORT_FLAG_NAME = '__proxytest_loaded__'
 
 
@@ -188,9 +189,6 @@ class BackendDecorator(object):
         return super().__new__(cls)  # instance used as decorator
 
     def __init__(self, name: str):
-        """
-        Should only get here if an instance was used as a decorator.
-        """
         self.name = name
 
     def __call__(self, f: BackendInterface):
