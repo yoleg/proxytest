@@ -1,0 +1,5 @@
+proxytest.backend is a namespace package.
+
+proxytest uses the pkg-util style, but this extension uses native style.
+
+See: https://packaging.python.org/guides/packaging-namespace-packages/
