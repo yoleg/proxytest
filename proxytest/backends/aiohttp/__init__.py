@@ -1,6 +1,5 @@
 """
 A wrapper for the aiohttp backend that allows cleaner handling of <Python3.5
-
 """
 import sys
 
