@@ -6,17 +6,19 @@ All it does is fetch a web page ("http://example.com/" by default) using the pro
 
 Project Homepage: https://github.com/yoleg/proxytest
 """
+import argparse
 import logging
 import random
 import sys
-
-import argparse
 import time
-from typing import Any, Callable, Iterable, Iterator, List, Optional, Union
+from typing import Iterable, Iterator, Union
 
-from .request import RequestInfo, SessionConfig
+from . import backend
+from .request import RequestConfig, RequestInfo, SessionInfo
 from .urls import expand_proxy_url
 from .version import __version__
+
+LOGGER = logging.getLogger('proxytest')
 
 # The URL to get via the proxy (override with the --url command-line parameter)
 DEFAULT_TEST_URL = 'http://example.com/'
@@ -40,7 +42,6 @@ USER_AGENTS = [
 LOG_FORMAT_DEFAULT = '{levelname}: {message}'
 LOG_FORMAT_VERBOSE = '{asctime}.{msecs:03.0f}-{levelname}: {name}: {message}'
 LOG_DATE_FORMAT = '%y/%m/%d %H:%M:%S'
-LOGGER = logging.getLogger('proxytest')
 
 
 # exit codes namespace
@@ -56,85 +57,51 @@ class Event:
     request_end = 'end'
 
 
-BackendProcessor = Callable[[List[RequestInfo], Optional[SessionConfig]], Any]
-
-_not_installed = []
-""" List of uninstalled packages that would add backend options. """
-
-backends = {}
-"""
-backend-type to processor function
-
-:type: dict[str, BackendProcessor]
-"""
-
-
-def _gather_backends():
-    if sys.version_info >= (3, 5):
-        try:
-            # noinspection PyPackageRequirements
-            import aiohttp
-        except ImportError:
-            _not_installed.append('aiohttp')
-        else:
-            from .backend_aiohttp import process_requests
-            backends['aiohttp'] = process_requests
-
-    try:
-        # noinspection PyPackageRequirements
-        import requests
-    except ImportError:
-        _not_installed.append('requests')
-    else:
-        from .backend_requests import process_requests
-        backends['requests'] = process_requests
-
-
-_gather_backends()
-
-
 def main() -> int:
     """ Run the program from the command line, returning an exit code."""
+    backend.find_backends()
+
     options = _process_command_line()
 
     _configure_logging(options)
 
-    if not backends:
-        LOGGER.critical('No backends available! Try installing one of the following packages: {}'.format(', '.join(_not_installed)))
+    if not backend.REGISTRY:
+        LOGGER.critical('No backends available! Try installing one of the following packages: {}'.format(', '.join(backend.SUGGESTED_PACKAGES)))
         return ExitCode.unable_to_test
 
     try:
-        request_infos = list(_make_requests_from_options(options))
+        requests = list(_make_requests_from_options(options))
         """:type: list[RequestInfo] """
     except ValueError:  # details already logged in _make_requests_from_options
         return ExitCode.unable_to_test
 
-    session_config = SessionConfig(
+    session_config = SessionInfo(
             timeout=options.timeout,
             max_workers=options.workers,
+            requests=requests,
     )
 
     # choose the backend to use
-    backend = options.backend
-    backend_processor = backends.get(backend)
-    """ :type: BackendProcessor """
+    backend_name = options.backend
+    backend_processor = backend.REGISTRY.get(backend_name)
+    """ :type: backend.BackendInterface """
     if not backend_processor:
-        available_backends = ', '.join(sorted(backends))
-        LOGGER.critical('Invalid backend {}! Available backends: {}'.format(backend, available_backends))
+        available_backends = ', '.join(sorted(backend.REGISTRY))
+        LOGGER.critical('Invalid backend {}! Available backends: {}'.format(backend_name, available_backends))
         return ExitCode.unable_to_test
 
     # run the tests
-    LOGGER.info('Starting {} requests using {}.'.format(len(request_infos), backend))
+    LOGGER.info('Starting {} requests using {}.'.format(len(requests), backend_name))
     start_time = time.monotonic()
     assert callable(backend_processor), repr(backend_processor)
-    backend_processor(request_infos, session_config)
-    unfinished_count = sum((1 for x in request_infos if not x.finished))
+    backend_processor(session_config)
+    unfinished_count = sum((1 for x in requests if not x.status.finished))
     if unfinished_count:
-        LOGGER.error('{} out of {} requests unfinished'.format(unfinished_count, len(request_infos)))
+        LOGGER.error('{} out of {} requests unfinished'.format(unfinished_count, len(requests)))
         return ExitCode.unable_to_test
 
-    fail_count = sum((1 for x in request_infos if not x.succeeded))
-    LOGGER.info('Done! {} requests failed out of {} requests total in {:.2f}s'.format(fail_count, len(request_infos), time.monotonic() - start_time))
+    fail_count = sum((1 for x in requests if not x.status.succeeded))
+    LOGGER.info('Done! {} requests failed out of {} requests total in {:.2f}s'.format(fail_count, len(requests), time.monotonic() - start_time))
 
     # choose the exit code (0 on success)
     # noinspection PyShadowingNames
@@ -143,28 +110,32 @@ def main() -> int:
 
 
 def _process_command_line():
-    available_backends = sorted(backends)
-    default_backend = 'aiohttp' if 'aiohttp' in backends else (available_backends and available_backends[0] or 'None available!')
-
     parser = argparse.ArgumentParser('proxytest',
                                      description='Test if one or more HTTP proxies are working by requesting a webpage through each.',
-                                     epilog='Return status: 0 on success, 1 if any proxy tests failed, or 2 if an error prevented any proxy tests from starting or finishing.'
+                                     epilog='Return status: 0 on success, 1 if any proxy tests failed, '
+                                            'or 2 if an error prevented any proxy tests from starting or finishing.'
                                      )
     parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
 
     # required arguments - variable number of proxy URLs
     parser.add_argument('proxies', metavar='PROXYHOST:STARTPORT[-ENDPORT]', type=str, nargs='+',
-                        help='The proxy host/ports to use. -ENDPORT is optional. Example: 1.2.3.4:8080 1.2.3.4:8080-8090. Use "{}" to call the webpage directly.'.format(NO_PROXY))
+                        help='The proxy host/ports to use. -ENDPORT is optional. '
+                             'Example: 1.2.3.4:8080 1.2.3.4:8080-8090. Use "{}" to call the webpage directly.'.format(NO_PROXY))
 
     # optional arguments
     parser.add_argument('--agent', '-a', dest='agent', type=str,
                         help='The user agent string to use. (default: random)')
-    parser.add_argument('--backend', '-b', dest='backend', type=str, choices=available_backends, default=default_backend,
-                        help='The backend to use. Choose from: {choices}. {also_text} (default: {default})'.format(
-                                choices=', '.join(available_backends) or 'None available!',
-                                also_text=('' if not _not_installed else 'For more backends, install: {}'.format(', '.join(_not_installed))),
-                                default=default_backend)
-                        )
+
+    # backend option
+    available_backends = sorted(backend.REGISTRY)
+    default_backend = 'aiohttp' if 'aiohttp' in backend.REGISTRY else (available_backends and available_backends[0] or 'None available!')
+    also_text = ''
+    if backend.SUGGESTED_PACKAGES:
+        also_text = 'For more backends, install: {}'.format(', '.join(backend.SUGGESTED_PACKAGES))
+    help_text = 'The backend to use. Choose from: {choices}. {also_text} (default: {default})'.format(
+            choices=', '.join(available_backends) or 'None available!', also_text=also_text, default=default_backend, )
+    parser.add_argument('--backend', '-b', dest='backend', type=str, choices=available_backends, default=default_backend, help=help_text)
+
     parser.add_argument('--number', '-n', dest='number', type=int, default=1,
                         help='Number of times to test each proxy (default: 1)')
     parser.add_argument('--timeout', '-t', dest='timeout', type=float, default=DEFAULT_TIMEOUT,
@@ -178,9 +149,11 @@ def _process_command_line():
     group = parser.add_argument_group('output')
     group.add_argument('--print', '-p', dest='print', action='store_true',
                        help='Print each webpage to stdout on a successful fetch.')
-    placeholders = sorted(list(RequestInfo('_').__dict__) + ['result_flat', 'duration'])
+    placeholders = RequestInfo(RequestConfig('_')).get_placeholders()
     group.add_argument('--format', '-f', dest='print_format', type=str, default=DEFAULT_PRINT_FORMAT,
-                       help='The output format to use for --print. Placeholders: {}. (default: {!r})'.format(', '.join(placeholders), DEFAULT_PRINT_FORMAT))
+                       help='The output format to use for --print. '
+                            'Placeholders: {}. (default: {!r})'.format(
+                               ', '.join(sorted(placeholders)), DEFAULT_PRINT_FORMAT))
     group.add_argument('--quiet', '-q', dest='quiet', action='store_true',
                        help='Suppress logging. Overrides --debug and --verbose, but --print will still work.')
     group.add_argument('--debug', '-d', dest='debug', action='store_true',
@@ -219,14 +192,20 @@ def _make_requests_from_options(options) -> Iterator[RequestInfo]:
     for _ in range(0, options.number):
         iterator = _expand_proxy_urls(options.proxies)
         for i, proxy_url in enumerate(iterator):
-            yield RequestInfo(
+            config = RequestConfig(
+                    # name for easy ID in logs
                     name='request{} ({})'.format(i, proxy_url or 'no proxy'),
+
+                    # request options
                     proxy_url=proxy_url or None,
                     url=options.test_url,
                     user_agent=options.agent or random.choice(USER_AGENTS),
+
+                    # callbacks keep complex logic out of RequestConfig
                     start_callback=lambda request: _event_callback(request, options=options, event=Event.request_start),
                     end_callback=lambda request: _event_callback(request, options=options, event=Event.request_end),
             )
+            yield RequestInfo(config)
 
 
 def _expand_proxy_urls(proxy_strings: Iterable[str]) -> Iterator[Union[str]]:
@@ -248,25 +227,29 @@ def _expand_proxy_urls(proxy_strings: Iterable[str]) -> Iterator[Union[str]]:
 
 
 def _event_callback(request: RequestInfo, options, event: str = None):
-    """ Handling for request start/ error/ success. """
+    """ Called on request start/ error/ success. """
     # log start of request
+    config = request.config
+    status = request.status
     if event == Event.request_start:
-        LOGGER.info('{name}: Connecting to {url}'.format(url=request.url, name=request.name))
+        LOGGER.info('{name}: Connecting to {url}'.format(url=config.url, name=config.name))
         return
 
     assert event == Event.request_end, event
-    duration = request.finished - request.started
+    duration = status.finished - status.started
 
     # warn if failed
-    if not request.succeeded:
-        LOGGER.warning('{name}: Error connecting to {url}: {error} ({duration:.2f}s)'.format(name=request.name, error=request.error, duration=duration, url=request.url))
+    if not status.succeeded:
+        LOGGER.warning(
+                '{name}: Error connecting to {url}: {error} ({duration:.2f}s)'.format(name=config.name, error=status.error, duration=duration, url=config.url))
         return
 
     # log and optionally dump content on success
-    LOGGER.info('{name}: Success! Got {length} characters from {url} ({duration:.2f}s)'.format(length=len(request.result), name=request.name, duration=duration, url=request.url))
+    LOGGER.info('{name}: Success! Got {length} characters from {url} ({duration:.2f}s)'.format(
+            length=len(status.result), name=config.name, duration=duration, url=config.url))
     if options.print:
         print(options.print_format.format(
-                result_flat=' '.join(str(request.result).splitlines()),
+                result_flat=' '.join(str(status.result).splitlines()),
                 duration=duration,
-                **request.__dict__
+                **config.__dict__
         ))

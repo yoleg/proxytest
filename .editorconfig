@@ -1,0 +1,3 @@
+[*.py]
+# personal preference!
+max_line_length = 160
