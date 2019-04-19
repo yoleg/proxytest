@@ -1,7 +1,35 @@
 """
-Self-registering backends.
+Self-registering, plugable backends.
 
-The complexity is just for demonstration and totally unnecessary :).
+The complexity here is just for demonstration and totally unnecessary :)
+
+globals:
+    * REGISTRY is a dict of a backend name to the backend processor.
+    * SUGGESTED_PACKAGES is a list of uninstalled packages that
+        might add more backend options if installed.
+
+Backend processors are callables that accept a SessionInfo instance as a
+positional argument. They not need to return anything.
+
+    def my_backend(info: SessionInfo):
+        pass
+
+Backends add their processors to the REGISTRY (or update SUGGESTED_PACKAGES)
+by using any of the tools provided here:
+
+    1. calling register("name", processor)
+    2. decorating the processor: @BackendDecorator or @BackendDecorator("name")
+    3. subclassing and instantiating AbstractBackendInstance("name")
+    4. using BackendMeta as a metaclass
+    5. subclassing AbstractBackend - clean and easy!
+
+find_backends() finds and imports all modules in the namespace package "proxytest.backends".
+
+When a backend module is imported, it can optionally raise the following exceptions:
+
+    * NotSupportedError if not available on this system (e.g. async/ await syntax on Python 3.4)
+    * MissingDependenciesError(list_of_suggested_packages) if missing a required package
+
 """
 import abc
 import contextlib
@@ -20,7 +48,7 @@ SUGGESTED_PACKAGES = []
 """ List of uninstalled packages that would add backend options. """
 REGISTRY = {}
 """
-backend name to processor
+backend name to backend
 
 :type: dict[str, BackendInterface]
 """
@@ -32,20 +60,37 @@ def reset_backends():
 
 
 def find_backends():
-    """ Automatically loads backends """
+    """
+    Automatically loads backends from the proxytest.backends namespace package.
+
+    This allows additional backends to be added from other packages.
+
+    See:
+        * https://packaging.python.org/guides/creating-and-discovering-plugins/
+        * https://packaging.python.org/guides/packaging-namespace-packages/
+    """
+    import proxytest.backends
+    namespace_package = proxytest.backends
+    ns_path = namespace_package.__path__  # '/path/to/proxytest/backends/'
+    ns_name = namespace_package.__name__ + "."  # 'proxytest.backends.'
+    key = '__proxytest_loaded'
+
     # source: https://packaging.python.org/guides/creating-and-discovering-plugins/
     # Specifying the second argument (prefix) to iter_modules makes the
     # returned name an absolute name instead of a relative one. This allows
     # import_module to work without having to do additional modification to
     # the name.
-    import proxytest.backends
-    ns_pkg = proxytest.backends
-    module_iterator = pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
+    module_iterator = pkgutil.iter_modules(ns_path, ns_name)
+
     for finder, name, is_package in module_iterator:
         if '._' in name:
             continue
         with import_exception_manager(name):
-            importlib.import_module(name)  # self-registers on import
+            module = importlib.import_module(name)  # self-registers on import
+            if getattr(module, key, False):
+                importlib.reload(module)
+            else:
+                setattr(module, key, True)
 
 
 @contextlib.contextmanager
@@ -106,15 +151,15 @@ def register(name: str, processor: BackendInterface):
     if not name:
         raise ValueError('Missing backend name!')
     if not isinstance(name, str):
-        raise TypeError('Backend name should be a string, got {}!'.format(type(name).__name__))
+        raise TypeError('name should be a string, got {}!'.format(type(name).__name__))
     if not callable(processor):
-        raise TypeError('Processor should be a callable, got {}!'.format(type(name).__name__))
+        raise TypeError('processor should be callable, got {}!'.format(type(name).__name__))
     if name in REGISTRY:
         raise AlreadyInRegistry(name)
     REGISTRY[name] = processor
 
 
-# option 2: decorator
+# option 2: decorator, with and without arguments
 class BackendDecorator(object):
     """
     Use as an instance to pass in a name:
@@ -191,10 +236,10 @@ class BackendMeta(abc.ABCMeta):
             raise ImplementationError('"name" attribute is empty in {}!'.format(name))
         # noinspection PyTypeChecker
         register(name, cls)
-        cls.name = name  # if callable name, replace it with a string
+        cls.name = name
 
 
-# option 5: abstract class that uses BackendMeta (clean and easy)
+# option 5: abstract class that uses BackendMeta (clean and easy!)
 class AbstractBackend(metaclass=BackendMeta):
     name = None  # must be overridden
     """:type: str """
