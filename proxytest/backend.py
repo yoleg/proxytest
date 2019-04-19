@@ -52,6 +52,7 @@ backend name to backend
 
 :type: dict[str, BackendInterface]
 """
+_IMPORT_FLAG_NAME = '__proxytest_loaded__'
 
 
 def reset_backends():
@@ -71,9 +72,8 @@ def find_backends():
     """
     import proxytest.backends
     namespace_package = proxytest.backends
-    ns_path = namespace_package.__path__  # '/path/to/proxytest/backends/'
+    ns_path = namespace_package.__path__  # ['/path1/proxytest/backends/', '/path2/proxytest/backends/']
     ns_name = namespace_package.__name__ + "."  # 'proxytest.backends.'
-    key = '__proxytest_loaded'
 
     # source: https://packaging.python.org/guides/creating-and-discovering-plugins/
     # Specifying the second argument (prefix) to iter_modules makes the
@@ -82,15 +82,18 @@ def find_backends():
     # the name.
     module_iterator = pkgutil.iter_modules(ns_path, ns_name)
 
+    # iterate all modules and packages inside the namespace package paths
     for finder, name, is_package in module_iterator:
         if '._' in name:
-            continue
-        with import_exception_manager(name):
-            module = importlib.import_module(name)  # self-registers on import
-            if getattr(module, key, False):
+            continue  # skip anything starting with an underscore
+
+        with import_exception_manager(name):  # handle special exceptions
+            module = importlib.import_module(name)
+            if getattr(module, _IMPORT_FLAG_NAME, False):  # did this already
+                # reload to call the registration methods again
                 importlib.reload(module)
             else:
-                setattr(module, key, True)
+                setattr(module, _IMPORT_FLAG_NAME, True)  # first time - set the flag
 
 
 @contextlib.contextmanager
