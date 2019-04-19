@@ -3,7 +3,8 @@ import os
 import sys
 import warnings
 
-from setuptools import setup, find_packages
+from setuptools import setup
+
 import proxytest
 
 if sys.version_info < (3, 5):
@@ -15,8 +16,9 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md'), "r") as fh:
 install_requires = [
     'aiohttp>=3.5.4,<4.0; python_version>="3.5.3"',
     'requests>=2.21.0,<3.0; python_version<"3.5.3"',
-    'typing>=3.6.6,<4.0; python_version<"3.5.3"'
+    'typing>=3.6.6,<4.0; python_version<"3.5.0"'
 ]
+
 
 setup(
     name='proxytest',
@@ -36,7 +38,10 @@ setup(
     maintainer_email='oleg@olegpryadko.com',
     url='https://github.com/yoleg/proxytest',
     license='MIT',
-    packages=find_packages(),
+        packages=[
+            'proxytest',
+            'proxytest.backends',
+        ],
     entry_points={
         'console_scripts': [
             'proxytest = proxytest.proxytest:main',
