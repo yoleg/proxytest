@@ -5,9 +5,9 @@
 
 Simple command-line script to check if multiple proxies are up by fetching a webpage through each (in parallel).
 
-The only advantage of this tool over an HTTP client with proxy support (such as httpie) is that it provides an **easy way to check multiple proxies at once**.
+But the *main* purpose of proxytest is to be a Python **coding sample**, so it has way more features than it needs. :)
 
-But the *main* purpose of proxytest is to be a **Python coding sample**, so it has way more features than it really needs. :)
+It's also an excuse for me to play with Travis, pypi, and namespace packages.
 
 ## Installation:
 
@@ -24,7 +24,7 @@ proxytest http://1.2.3.4:8080 http://1.2.3.4:8081
 
 proxytest 1.2.3.4:8080-8081  # same as above
 
-proxytest -v -n 10 --timeout 1 "http://user:pass@exampleproxy.com:3128" "111.222.333.444:8080-8082" "111.222.333.444:8085-8090"
+proxytest -v -n 10 --timeout 1 "http://user:pass@exampleproxy.cofm:3128" "111.222.333.444:8080-8082" "111.222.333.444:8085-8090"
 
 proxytest "1.2.3.4:1234" --url="https://example.com"  --print
 
@@ -91,6 +91,7 @@ output:
 
 * aiohttp (default) - asyncio support (requires Python 3.5.3 or above)
 * requests - useful for Python 3.4, supports HTTPS proxies
+* dummy - doesn't actually make any connections
 
 ## Output:
 
@@ -104,9 +105,11 @@ No output on success unless verbose or debug mode enabled.
 
 ## History:
 
-One of my clients has a set of private proxies with intermittent connectivity issues.
+A client needed a script to periodically check the outgoing connections on a dozen or so private proxies. A search for "proxy test" in pypi found nothing relevant.
+  
+Normally, I would have just written a simple wrapper for an HTTP client with proxy support (such as httpie).
 
-I searched for a multi-proxy test script and didn't find anything. So I grabbed the ~~excuse~~ opportunity to make a ~~coding sample~~ pypi package that might be remotely useful to someone.
+But instead, I grabbed the ~~excuse~~ opportunity to write a ~~coding sample~~ open source package that ~~might have a tiny chance of being useful~~ might be useful to someone else.
 
 ## Links:
 

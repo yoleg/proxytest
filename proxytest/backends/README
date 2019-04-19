@@ -1,0 +1,11 @@
+proxytest.backend is a namespace package.
+
+This directory uses the "native" method and should not have an __init__.py file.
+
+See: https://packaging.python.org/guides/creating-and-discovering-plugins/
+
+To add backends, package your own proxytest.backend namespace packages.
+
+Once a backend is imported, it automatically registers itself.
+
+Backends get automatically imported by proxytest.backend.find_backends()
