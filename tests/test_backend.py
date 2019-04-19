@@ -59,7 +59,7 @@ class ProxyBackendImportTestCase(unittest.TestCase):
 
         # verify namespace package updated correctly
         ns_path = _get_namespace_package_path()
-        self.assertEqual(len(ns_path), 2)
+        self.assertGreaterEqual(len(ns_path), 2)
 
         # find_backends should now load backends from both demo_extension_path and the main proxytest module
         backend.find_backends()

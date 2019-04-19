@@ -249,7 +249,7 @@ class AbstractBackend(metaclass=BackendMeta):
 
     def __init__(self, info: SessionInfo) -> None:
         super().__init__()
-        self.log = logging.getLogger(self.name)
+        self.log = get_logger(self.name)
         self.process(info)
 
     @abc.abstractmethod
