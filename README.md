@@ -5,9 +5,13 @@
 
 Simple command-line script to check if multiple proxies are up by fetching a webpage through each (in parallel).
 
-The only advantage of this tool over a commandline HTTP client (such as httpie) is that it provides an **easy way to check multiple proxies at once**.
+The only advantage of this tool over an HTTP client with proxy support (such as httpie) is that it provides an **easy way to check multiple proxies at once**.
 
-But the *main* purpose of proxytest is to be a **Python coding sample**, so it has more features than it really needs. :)
+But the *main* purpose of proxytest is to be a **Python coding sample**, so it has way more features than it really needs. :)
+
+## History:
+
+I searched for a multi-proxy test script and didn't find anything. So I grabbed the ~~excuse~~ opportunity to make a ~~coding sample~~ pypi package that might be remotely useful to someone.
 
 ## Installation:
 
