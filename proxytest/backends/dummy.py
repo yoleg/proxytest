@@ -7,7 +7,8 @@ from proxytest import backend
 from proxytest.context import ProxyTestContext
 
 
-class DummyException(Exception):
+class DummyError(Exception):
+    """ Dummy Exception. """
     pass
 
 
@@ -20,4 +21,4 @@ class DummyBackend(backend.AbstractBackend):
         for request in context.requests:
             request.start()
             self.log.warning('DUMMY: doing nothing!')
-            request.finish(error=DummyException('DUMMY: nothing tested!'))
+            request.finish(error=DummyError('DUMMY: nothing tested!'))

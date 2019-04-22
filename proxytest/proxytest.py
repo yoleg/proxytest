@@ -113,6 +113,7 @@ def run_from_command_line() -> int:
 
 class Runner(object):
     """ Runs the requests based on the parsed options."""
+
     @property
     def running(self) -> bool:
         """ Whether the runner is still processing a batch of requests. """
@@ -324,7 +325,6 @@ def _configure_logging(options):
         log_format = LOG_FORMAT_VERBOSE
     elif options.verbose:
         log_level = logging.INFO
-        log_format = LOG_FORMAT_VERBOSE
     logging.basicConfig(
             level=log_level,
             format=log_format,
@@ -399,12 +399,21 @@ class Output:  # here, the class is just a tidy namespace, but it can be extende
     def run_end(cls, runner: Runner, start_time: float):
         """ The backend finished processing the requests. """
         end_time = time.monotonic() - start_time
-        LOGGER.info('SUMMARY: {failed}/{ran} requests failed ({percent:.1f}%) in {duration:.2f}s.'.format(
+        success_count = runner.ran_count - runner.failed_count
+        failed_proxies = sorted((x.config.proxy_url for x in runner.context.requests if not x.status.succeeded))
+        params = dict(
                 failed=runner.failed_count,
+                succeeded=success_count,
                 ran=runner.ran_count,
-                percent=(runner.failed_count / runner.ran_count) * 100,
+                fail_percent=(runner.failed_count / runner.ran_count) * 100,
+                success_percent=(success_count / runner.ran_count) * 100,
                 duration=end_time,
-        ))
+                failed_list=', '.join(failed_proxies)
+        )
+        if runner.failed_count:
+            LOGGER.warning('{failed}/{ran} FAILED ({duration:.2f}s): {failed_list}'.format(**params))
+        else:
+            LOGGER.info('SUCCEEDED: all {ran} requests in {duration:.2f}s.'.format(**params))
 
     @staticmethod
     def request_start(request: RequestInfo):
