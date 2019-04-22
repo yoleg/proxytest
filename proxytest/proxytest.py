@@ -16,7 +16,7 @@ from functools import partial
 from typing import Iterable, Iterator
 
 from . import backend
-from .request import ProxyTestContext, RequestConfig, RequestInfo
+from .context import ProxyTestContext, RequestConfig, RequestInfo
 from .urls import expand_proxy_url
 from .version import __version__
 

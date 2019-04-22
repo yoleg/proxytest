@@ -9,7 +9,7 @@ import functools
 from concurrent.futures import ThreadPoolExecutor
 
 from proxytest import backend
-from proxytest.request import ProxyTestContext, RequestInfo
+from proxytest.context import ProxyTestContext, RequestInfo
 
 try:
     # noinspection PyPackageRequirements

@@ -4,7 +4,7 @@ Example backend that does absolutely nothing, not even marking requests as start
 Used for testing.
 """
 from proxytest import backend
-from proxytest.request import ProxyTestContext
+from proxytest.context import ProxyTestContext
 
 
 class DummyBackend(backend.AbstractBackend):

@@ -38,7 +38,7 @@ import logging
 import pkgutil
 from typing import Any, Callable, Iterable, Union
 
-from .request import ProxyTestContext  # for type hints
+from .context import ProxyTestContext  # for type hints
 
 BackendInterface = Callable[[ProxyTestContext], Any]  # for type hints only
 

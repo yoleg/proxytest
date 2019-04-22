@@ -8,7 +8,7 @@ Requires "aiohttp" package. Useful for Python 3.5 or above.
 import asyncio
 
 from proxytest import backend
-from proxytest.request import ProxyTestContext, RequestInfo
+from proxytest.context import ProxyTestContext, RequestInfo
 
 try:
     # noinspection PyPackageRequirements
