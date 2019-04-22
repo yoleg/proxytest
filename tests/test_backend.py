@@ -2,10 +2,8 @@
 """ Tests for proxytest pluggable backends. """
 import unittest
 
+from demo_extension import activate_demo_extension, deactivate_demo_extension
 from proxytest import backend, SessionInfo
-# sys.path.insert(0, str(Path(__file__).parent.absolute()))  # allow relative imports
-#
-from utils import activate_demo_extension, deactivate_demo_extension
 
 
 class ProxyBackendImportTestCase(unittest.TestCase):

@@ -3,8 +3,8 @@
 import unittest
 from typing import List
 
+from demo_extension import activate_demo_extension, deactivate_demo_extension
 from proxytest import backend, proxytest
-from utils import activate_demo_extension, deactivate_demo_extension
 
 
 class RunnerTestCase(unittest.TestCase):
