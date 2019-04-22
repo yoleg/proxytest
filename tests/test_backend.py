@@ -1,26 +1,11 @@
 #!/usr/bin/env python3
 """ Tests for proxytest pluggable backends. """
-import importlib
-import sys
 import unittest
-from pathlib import Path
-from typing import List
 
 from proxytest import backend, SessionInfo
-
-demo_extension_path = str(Path(__file__).parent / 'demo-extension')
-
-
-def _get_namespace_package_path() -> List[str]:
-    import proxytest.backends
-    return proxytest.backends.__path__
-
-
-def _reload_namespace_package():
-    """ Required to update proxytest.backends.__path__ after modifying sys.path """
-    # keep in own namespace
-    import proxytest
-    importlib.reload(proxytest)
+# sys.path.insert(0, str(Path(__file__).parent.absolute()))  # allow relative imports
+#
+from utils import activate_demo_extension, deactivate_demo_extension
 
 
 class ProxyBackendImportTestCase(unittest.TestCase):
@@ -29,7 +14,8 @@ class ProxyBackendImportTestCase(unittest.TestCase):
         assert not backend.REGISTRY
         assert not backend.SUGGESTED_PACKAGES
         self.addCleanup(backend.reset_backends)
-        self._old_path = sys.path
+        self.addCleanup(deactivate_demo_extension)
+        activate_demo_extension()
 
     def _assert_registered(self, name: str, fn: callable):
         self.assertIn(name, backend.REGISTRY)
@@ -48,24 +34,12 @@ class ProxyBackendImportTestCase(unittest.TestCase):
         self.assertIn('dummy', backend.REGISTRY)
 
     def test_find_backends_namespace_path(self):
-        def _restore_path():
-            sys.path.remove(demo_extension_path)
-            _reload_namespace_package()  # required after modifying path
-
-        if demo_extension_path not in sys.path:
-            sys.path.append(demo_extension_path)
-            _reload_namespace_package()  # required after modifying path
-            self.addCleanup(_restore_path)
-
-        # verify namespace package updated correctly
-        ns_path = _get_namespace_package_path()
-        self.assertGreaterEqual(len(ns_path), 2)
-
         # find_backends should now load backends from both demo_extension_path and the main proxytest module
         backend.find_backends()
-        self.assertNotIn('unavailable', backend.REGISTRY)
-        self.assertIn('dummy', backend.REGISTRY)
-        self.assertIn('dummy2', backend.REGISTRY)
+        self.assertIn('dummy', backend.REGISTRY)  # built-in
+        self.assertNotIn('unavailable', backend.REGISTRY)  # from extension
+        self.assertIn('dummy-success', backend.REGISTRY)  # from extension
+        self.assertIn('dummy-error', backend.REGISTRY)  # from extension
 
     def test_import_exception_manager(self):
         with backend.import_exception_manager('a'):
