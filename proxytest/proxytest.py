@@ -417,22 +417,22 @@ class ANSIIColors:
     END = '\033[0m'
 
 
-class ProxyTestLogFormatter(logging.Formatter):
+class ColorLogFormatter(logging.Formatter):
     """ Simple colorization of log output. """
 
     def formatMessage(self, record: logging.LogRecord) -> str:
         """ Format and colorize the log record. """
         formatted = self._style.format(record)
-        if sys.stdout.isatty():
-            formatted = self._wrap_in_color(formatted, record)
+        if LOG_STREAM.isatty():
+            formatted = self._colorize(formatted, level=record.levelno)
         return formatted
 
-    def _wrap_in_color(self, message, record):
-        if record.levelno < logging.INFO:
+    def _colorize(self, message, level: int):
+        if level < logging.INFO:
             color = ANSIIColors.GREY_DARK
-        elif record.levelno < logging.WARNING:
+        elif level < logging.WARNING:
             color = ANSIIColors.DEFAULT
-        elif record.levelno < logging.ERROR:
+        elif level < logging.ERROR:
             color = ANSIIColors.YELLOW_LIGHT
         else:
             color = ANSIIColors.YELLOW_LIGHT
@@ -455,7 +455,7 @@ def configure_logging(options):
 
     root = logging.getLogger()
     root.setLevel(log_level)
-    handler.formatter = ProxyTestLogFormatter(fmt=log_format, datefmt=LOG_DATE_FORMAT, style='{')
+    handler.formatter = ColorLogFormatter(fmt=log_format, datefmt=LOG_DATE_FORMAT, style='{')
     root.handlers += [handler]
 
 
