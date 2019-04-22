@@ -118,7 +118,7 @@ A client needed a script to periodically check the outgoing connections on a doz
   
 Normally, I would have just written a simple wrapper for an HTTP client with proxy support (such as httpie).
 
-But instead, I grabbed the ~~excuse~~ opportunity to write a ~~coding sample~~ open source package that ~~might have a tiny chance of being useful~~ might be useful to someone else.
+But instead, I grabbed the ~~excuse~~ opportunity to write a ~~coding sample~~ open source package that ~~is remotely useful~~ is destined to become wildly popular.
 
 ## Links:
 

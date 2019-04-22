@@ -350,8 +350,8 @@ def get_argument_parser() -> argparse.ArgumentParser:
     default_backend = backend_order[0]
     also_text = ''
     if backend.SUGGESTED_PACKAGES:
-        also_text = 'For more backends, install: {}'.format(', '.join(backend.SUGGESTED_PACKAGES))
-    backend_help = 'The backend to use. Choose from: {choices}. {also_text} (default: {default})'.format(
+        also_text = 'For more backends, install: {}.'.format(', '.join(backend.SUGGESTED_PACKAGES))
+    backend_help = 'The backend to use. Available backends: {choices}. (default: {default}) {also_text}'.format(
             choices=', '.join(available_backends) or 'None available!',
             also_text=also_text,
             default=default_backend,
