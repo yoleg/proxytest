@@ -88,10 +88,16 @@ output:
 ```
 
 ## Backends:
+ 
+Built-in backends:
 
-* aiohttp (default) - asyncio support (requires Python 3.5.3 or above)
-* requests - useful for Python 3.4, supports HTTPS proxies
-* dummy - doesn't actually make any connections
+* aiohttp - asyncio support (requires: `aiohttp`, Python >= 3.5.3)
+* requests - useful for Python 3.4, supports HTTPS proxies (requires: `requests`)
+* dummy - does not make any outgoing connections
+
+Third-party extensions can add backends by using the `proxytest.backends` [namespace package](https://packaging.python.org/guides/packaging-namespace-packages/). See the `tests/` directory for an example.
+
+If a backend's requirements have not been met, the `--help` description for the `--backend` option will show a list of recommended packages to install that would enable more backends.
 
 ## Output:
 
