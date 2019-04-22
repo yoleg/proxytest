@@ -41,7 +41,11 @@ class RunnerTestCase(unittest.TestCase):
 
     def test_runner_unstarted(self):
         with self.assertRaises(proxytest.UnableToTest):
-            self._run_runner(['1.2.3.4:1234', '1.2.3.4:1234', '--backend=dummy-unfinished'])
+            self._run_runner(['1.2.3.4:1234', '1.2.3.4:1234', '--backend=dummy-unstarted'])
+
+    def test_runner_exception(self):
+        with self.assertRaises(proxytest.UnableToTest):
+            self._run_runner(['1.2.3.4:1234', '1.2.3.4:1234', '--backend=dummy-exception'])
 
 
 if __name__ == '__main__':
