@@ -4,7 +4,12 @@ that must be shared between the caller and the backend.
 """
 
 import time
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Union
+
+
+# make things easier for backend implementors
+def _non_negative(number: Union[int, float, None]):
+    return max([0, (number or 0)])
 
 
 class SessionInfo(object):
@@ -14,9 +19,11 @@ class SessionInfo(object):
     Contains both state and configuration.
     """
 
-    def __init__(self, *, requests: List['RequestInfo'] = None, timeout: float = None, max_workers: int = None):
-        self.timeout = timeout
-        self.max_workers = max_workers
+    # options get set here explicitly as arguments for easy IDE inspections
+    def __init__(self, *, requests: List['RequestInfo'] = None, timeout: float = None,
+                 max_workers: int = None):  # callbacks keep this class clean and simple
+        self.timeout = _non_negative(timeout)
+        self.max_workers = _non_negative(max_workers)
         self.requests = requests or []
         """:type: list[RequestInfo] """
 
@@ -48,6 +55,9 @@ class RequestInfo(object):
         return 'RequestInfo({!r}, {!r})'.format(self.config, self.status)
 
     def start(self):
+        # reset
+        self.status = RequestStatus()
+        """:type: RequestStatus"""
         self.status.start()
         if self.config.start_callback:
             self.config.start_callback(self)
@@ -60,6 +70,7 @@ class RequestInfo(object):
 
 class RequestStatus(object):
     """ Request status. Changes only between start() and finish().. """
+
     @property
     def succeeded(self):
         assert self.finished, 'succeeded called before finished! started={!r}, finished={!r}'.format(self.started, self.finished)
@@ -88,7 +99,7 @@ class RequestStatus(object):
         return 'error: {}'.format(self.error)
 
     def __repr__(self):
-        return ', '.join('{}={}'.format(k, v) for k, v in sorted(self.__dict__))
+        return ', '.join('{}={}'.format(k, v) for k, v in sorted(self.__dict__.items()))
 
     def start(self):
         assert not self.finished, repr(self)
@@ -104,6 +115,7 @@ class RequestStatus(object):
 
 class RequestConfig(object):
     """ Request configuration. Should not change after start. """
+
     def __init__(self, url: str, proxy_url: str = None, user_agent: str = None, name: str = None,
                  start_callback: Callable[['RequestInfo'], Any] = None, end_callback: Callable[['RequestInfo'], Any] = None):
         """
@@ -116,14 +128,16 @@ class RequestConfig(object):
         """
         if not url:
             raise ValueError('URL is required!')
+        self.name = name or ''
         self.url = url
         self.proxy_url = proxy_url
-        self.name = name or ''
-        self.start_callback = start_callback
-        self.end_callback = end_callback
         self.headers = {}
         if user_agent:
             self.headers['User-Agent'] = user_agent
+
+        # callbacks keep this class clean and simple
+        self.start_callback = start_callback
+        self.end_callback = end_callback
 
     def __repr__(self):
         return ', '.join(('{}={}'.format(k, v) for k, v in sorted(self.__dict__.items())))
