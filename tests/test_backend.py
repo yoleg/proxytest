@@ -12,8 +12,6 @@ class ProxyBackendImportTestCase(unittest.TestCase):
         assert not backend.REGISTRY
         assert not backend.SUGGESTED_PACKAGES
         self.addCleanup(backend.reset_backends)
-        self.addCleanup(deactivate_demo_extension)
-        activate_demo_extension()
 
     def _assert_registered(self, name: str, fn: callable):
         self.assertIn(name, backend.REGISTRY)
@@ -33,6 +31,22 @@ class ProxyBackendImportTestCase(unittest.TestCase):
 
     def test_find_backends_namespace_path(self):
         # find_backends should now load backends from both demo_extension_path and the main proxytest module
+        self.addCleanup(deactivate_demo_extension)
+        activate_demo_extension()
+        backend.find_backends()
+        self.assertIn('dummy', backend.REGISTRY)  # built-in
+        self.assertNotIn('unavailable', backend.REGISTRY)  # from extension
+        self.assertIn('dummy-success', backend.REGISTRY)  # from extension
+        self.assertIn('dummy-error', backend.REGISTRY)  # from extension
+
+        # clearable
+        backend.reset_backends()
+        self.assertNotIn('dummy', backend.REGISTRY)  # built-in
+        self.assertNotIn('unavailable', backend.REGISTRY)  # from extension
+        self.assertNotIn('dummy-success', backend.REGISTRY)  # from extension
+        self.assertNotIn('dummy-error', backend.REGISTRY)  # from extension
+
+        # repeatable
         backend.find_backends()
         self.assertIn('dummy', backend.REGISTRY)  # built-in
         self.assertNotIn('unavailable', backend.REGISTRY)  # from extension

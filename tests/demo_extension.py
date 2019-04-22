@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-""" Tests for proxytest pluggable backends. """
+"""
+Tools for unit tests to activate and deactivate "demo-extension"
+"""
 import importlib
 import sys
 from pathlib import Path
@@ -34,6 +36,6 @@ def activate_demo_extension():
 def deactivate_demo_extension():
     try:
         sys.path.remove(demo_extension_path)
-    except IndexError:
-        pass
+    except ValueError:
+        return
     reload_namespace_package()  # required after modifying path
