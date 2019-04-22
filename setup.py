@@ -52,7 +52,7 @@ setup(
         ],
     entry_points={
         'console_scripts': [
-            'proxytest = proxytest.proxytest:main',
+            'proxytest = proxytest.proxytest:run_from_command_line',
         ]
     },
     install_requires=install_requires,

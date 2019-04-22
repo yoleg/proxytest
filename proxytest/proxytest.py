@@ -66,11 +66,11 @@ class UnableToTest(Exception):
 
 
 # the entry point for command-line use
-def main() -> int:
+def run_from_command_line() -> int:
     """ Run the program from the command line, returning an exit code."""
     try:
         # separate out the body of the try block for clarity
-        return run_from_command_line()
+        return _run_from_command_line()
     except UnableToTest as e:
         LOGGER.critical('ERROR: {}'.format(e),
                         exc_info=e.log_traceback)
@@ -80,7 +80,7 @@ def main() -> int:
         return ExitCode.unable_to_test
 
 
-def run_from_command_line() -> int:
+def _run_from_command_line() -> int:
     """
     Load backends, process command-line arguments, and return an exit code.
 

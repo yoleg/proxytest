@@ -2,6 +2,6 @@
 
 import sys
 
-from . import main
+from . import run_from_command_line
 
-sys.exit(main())
+sys.exit(run_from_command_line())
