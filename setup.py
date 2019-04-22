@@ -48,6 +48,7 @@ setup(
         packages=[
             'proxytest',
             'proxytest.backends',
+            'proxytest.backends.aiohttp',
         ],
     entry_points={
         'console_scripts': [

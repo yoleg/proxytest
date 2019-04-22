@@ -268,7 +268,9 @@ def get_argument_parser() -> argparse.ArgumentParser:
 
     # which backend to use
     available_backends = sorted(backend.REGISTRY)
-    default_backend = 'aiohttp' if 'aiohttp' in backend.REGISTRY else (available_backends and available_backends[0] or 'None available!')
+    backend_order = sorted((x for x in backend.REGISTRY if x != 'dummy'))
+    backend_order.append('dummy')
+    default_backend = backend_order[0]
     also_text = ''
     if backend.SUGGESTED_PACKAGES:
         also_text = 'For more backends, install: {}'.format(', '.join(backend.SUGGESTED_PACKAGES))

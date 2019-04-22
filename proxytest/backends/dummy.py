@@ -7,6 +7,10 @@ from proxytest import backend
 from proxytest.context import ProxyTestContext
 
 
+class DummyException(Exception):
+    pass
+
+
 class DummyBackend(backend.AbstractBackend):
     """ Example backend that uses does nothing. """
     name = 'dummy'
@@ -15,11 +19,5 @@ class DummyBackend(backend.AbstractBackend):
         """ Process the requests one at a time, doing nothing.."""
         for request in context.requests:
             request.start()
-            try:
-                self.log.info('Doing nothing!')
-            except Exception as e:
-                # just an example, should never happen!
-                request.finish(error=e)
-            else:
-                # should happen every time!
-                request.finish(result='')
+            self.log.warning('DUMMY: doing nothing!')
+            request.finish(error=DummyException('DUMMY: nothing tested!'))
