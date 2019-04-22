@@ -38,10 +38,10 @@ python3 -m proxytest --version
 ```
 $ proxytest --help
 usage: proxytest [-h] [--version] [--agent AGENT]
-                 [--backend {aiohttp,requests}] [--number NUMBER]
-                 [--timeout TIMEOUT] [--url TEST_URL] [--workers WORKERS]
-                 [--print] [--format PRINT_FORMAT] [--quiet] [--debug]
-                 [--verbose]
+                 [--backend {aiohttp,dummy,requests}] [--number NUMBER]
+                 [--repeat SECONDS] [--timeout TIMEOUT] [--url TEST_URL]
+                 [--workers WORKERS] [--print] [--format PRINT_FORMAT]
+                 [--quiet] [--debug] [--verbose]
                  PROXYHOST:STARTPORT[-ENDPORT] [PROXYHOST:STARTPORT[-ENDPORT]
                  ...]
 
@@ -59,11 +59,13 @@ optional arguments:
   --version             show program's version number and exit
   --agent AGENT, -a AGENT
                         The user agent string to use. (default: random)
-  --backend {aiohttp,requests}, -b {aiohttp,requests}
-                        The backend to use. Choose from: aiohttp, requests.
-                        (default: aiohttp)
+  --backend {aiohttp,dummy,requests}, -b {aiohttp,dummy,requests}
+                        The backend to use. Choose from: aiohttp, dummy,
+                        requests. (default: aiohttp)
   --number NUMBER, -n NUMBER
                         Number of times to test each proxy (default: 1)
+  --repeat SECONDS, -r SECONDS
+                        Continue running and repeat the test every X seconds
   --timeout TIMEOUT, -t TIMEOUT
                         Timeout in seconds for each request. (default: 2)
   --url TEST_URL, -u TEST_URL
@@ -77,14 +79,15 @@ output:
   --print, -p           Print each webpage to stdout on a successful fetch.
   --format PRINT_FORMAT, -f PRINT_FORMAT
                         The output format to use for --print. Placeholders:
-                        duration, end_callback, error, finished, headers,
-                        name, proxy_url, result, result_flat, start_callback,
-                        started, url. (default: 'Content from {name}:
-                        "{result_flat:.100}..."')
+                        config, end_callback, error, finished, headers, idx,
+                        proxy_url, request, result, start_callback, started,
+                        status, status_code, url. (default: 'Content from
+                        {proxy_url} ({idx}): "{result_flat:.100}..."')
   --quiet, -q           Suppress logging. Overrides --debug and --verbose, but
                         --print will still work.
   --debug, -d           Enable debug logging to stderr. Overrides --verbose.
   --verbose, -v         Enable verbose logging to stderr.
+
 ```
 
 ## Backends:

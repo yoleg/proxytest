@@ -1,7 +1,7 @@
 """
 Self-registering, plugable backends.
 
-The complexity here is just for demonstration and totally unnecessary :)
+The complexity here is just for demonstration and is totally unnecessary :)
 
 globals:
     * REGISTRY is a dict of a backend name to the backend processor.
@@ -40,7 +40,7 @@ from typing import Any, Callable, Iterable, Union
 
 from .context import ProxyTestContext  # for type hints
 
-BackendInterface = Callable[[ProxyTestContext], Any]  # for type hints only
+ProcessorInterface = Callable[[ProxyTestContext], Any]  # for type hints only
 
 SUGGESTED_PACKAGES = []
 """ List of uninstalled packages that would add backend options. """
@@ -48,7 +48,7 @@ REGISTRY = {}
 """
 backend name to backend
 
-:type: dict[str, BackendInterface]
+:type: dict[str, ProcessorInterface]
 """
 
 LOGGER = logging.getLogger('proxytest.backend')
@@ -151,7 +151,7 @@ class AlreadyInRegistry(ImplementationError):
 # backend auto-registration
 
 # option 1: explicit registration
-def register(name: str, processor: BackendInterface):
+def register(name: str, processor: ProcessorInterface):
     """ Registers a backend."""
     if not name:
         raise ValueError('Missing backend name!')
@@ -183,29 +183,31 @@ class BackendDecorator(object):
 
     """
 
-    def __new__(cls, name_or_fn: Union[str, BackendInterface]) -> Union[BackendInterface, 'BackendDecorator']:
+    def __new__(cls, name_or_fn: Union[str, ProcessorInterface]) -> Union[ProcessorInterface, 'BackendDecorator']:
         if callable(name_or_fn):
-            register(name_or_fn.__name__, name_or_fn)
-            return name_or_fn  # class used as decorator
-        return super().__new__(cls)  # instance used as decorator
+            # class was used as decorator: @BackendDecorator
+            register(name_or_fn.__name__, name_or_fn)  # register the function
+            return name_or_fn  # return decorated function unchanged
 
-    def __init__(self, name: str):
-        self.name = name
+        # instance was used as decorator: @BackendDecorator(name)
+        obj = super().__new__(cls)
+        obj.name = name_or_fn
+        return obj
 
-    def __call__(self, f: BackendInterface):
+    def __call__(self, f: ProcessorInterface):
         """
         Support an instance being used as a decorator.
 
         @BackendDecorator('my_backend')
         """
-        register(self.name, f)
-        return f  # unchanged
+        register(self.name, f)  # register the function
+        return f  # return decorated function unchanged
 
 
 # option 3: abstract class that must be instantiated (problem: might forget!)
 class AbstractBackendInstance(abc.ABC):
-    """ Instantiating an instance will automatically register the instance's
-     "__call__" method as a backend and its "name" attribute as the name. """
+    """ Instantiating an instance will automatically register the instance
+    as a backend and its "name" attribute as the name. """
     name = None
 
     def __init__(self, name: str = None):
@@ -216,6 +218,7 @@ class AbstractBackendInstance(abc.ABC):
 
     @abc.abstractmethod
     def __call__(self, context: ProxyTestContext):
+        """ Called when the instance is called. """
         pass
 
 
@@ -224,7 +227,7 @@ class BackendMeta(abc.ABCMeta):
     """
     Makes the class itself a backend processor.
 
-    The class's __new__/ __init__ must implement BackendInterface
+    The class's __new__/ __init__ must implement ProcessorInterface
     Backend name will be cls.name or derived from the class name
     """
 

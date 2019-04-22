@@ -38,7 +38,7 @@ class RequestInfo(object):
     @property
     def log_key(self):
         """ A string to identify this request in the logs. """
-        return '{} ({})'.format(self.config.name, self.config.proxy_url)
+        return '{} ({})'.format(self.config.proxy_url, self.config.idx)
 
     def __init__(self, config: 'RequestConfig'):
         self.config = config
@@ -51,13 +51,13 @@ class RequestInfo(object):
         data = {}
         data.update(self.config.__dict__)
         data.update(self.status.__dict__)
-        data['log_key'] = str(self.log_key)
+        data['request'] = str(self)
         data['status'] = str(self.status)
         data['config'] = str(self.config)
         return data
 
     def __str__(self):
-        return self.config.name
+        return '{proxy_url} ({idx})'
 
     def __repr__(self):
         return 'RequestInfo({!r}, {!r})'.format(self.config, self.status)
@@ -143,19 +143,19 @@ class RequestStatus(object):
 class RequestConfig(object):
     """ Request configuration. Should not change after start. """
 
-    def __init__(self, url: str, proxy_url: str = None, user_agent: str = None, name: str = None,
+    def __init__(self, url: str, proxy_url: str = None, user_agent: str = None, idx: Any = None,
                  start_callback: Callable[['RequestInfo'], Any] = None, end_callback: Callable[['RequestInfo'], Any] = None):
         """
         :param url: The URL to fetch.
         :param proxy_url: The proxy to use while fetching.
         :param user_agent: The user agent to add to the headers.
-        :param name: A unique name to distinguish this requests from others in logs.
+        :param idx: A unique ID to distinguish this requests from others with the same proxy URL.
         :param start_callback: Callback to call when the request starts. Will be passed one positional argument: this object.
         :param end_callback: Callback to call when the request ends. Will be passed one positional argument: this object.
         """
         if not url:
             raise ValueError('URL is required!')
-        self.name = name or ''
+        self.idx = str(idx or '')
         self.url = url
         self.proxy_url = proxy_url
         self.headers = {}
