@@ -1,7 +1,7 @@
 """
 Example backend that marks requests as done without doing anything.
 
-Used by for testing.
+Used for testing.
 """
 from proxytest import backend
 from proxytest.request import SessionInfo

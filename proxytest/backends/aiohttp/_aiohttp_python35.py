@@ -30,18 +30,14 @@ def process_requests(context: SessionInfo = None):
 
 
 async def _process_requests_coroutine(context: SessionInfo = None):
-    # noinspection PyBroadException
-    try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=context.timeout)) as session:
-            batch_size = context.max_workers or len(context.requests)
-            for i in range(0, len(context.requests), batch_size):
-                tasks = []
-                for request in context.requests[i: i + batch_size]:
-                    task = asyncio.ensure_future(_process_request(session=session, request=request))
-                    tasks.append(task)
-                await asyncio.gather(*tasks)
-    except Exception:
-        LOGGER.exception('Exception processing requests!')
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=context.timeout)) as session:
+        batch_size = context.max_workers or len(context.requests)
+        for i in range(0, len(context.requests), batch_size):
+            tasks = []
+            for request in context.requests[i: i + batch_size]:
+                task = asyncio.ensure_future(_process_request(session=session, request=request))
+                tasks.append(task)
+            await asyncio.gather(*tasks)
 
 
 _warned = False

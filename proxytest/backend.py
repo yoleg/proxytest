@@ -9,7 +9,7 @@ globals:
         might add more backend options if installed.
 
 Backend processors are callables that accept a SessionInfo instance as a
-positional argument. They not need to return anything.
+positional argument. The callable does not need to return anything.
 
     def my_backend(info: SessionInfo):
         pass
