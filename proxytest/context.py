@@ -4,7 +4,7 @@ that must be shared between the caller and the backend.
 """
 
 import time
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, List, Union
 
 
 # make things easier for backend implementors
@@ -45,16 +45,6 @@ class RequestInfo(object):
         """:type: RequestConfig"""
         self.status = RequestStatus()
         """:type: RequestStatus"""
-
-    def get_placeholders(self) -> Dict[str, Any]:
-        """ Placeholders for string formatting (e.g. for logs) """
-        data = {}
-        data.update(self.config.__dict__)
-        data.update(self.status.__dict__)
-        data['request'] = str(self)
-        data['status'] = str(self.status)
-        data['config'] = str(self.config)
-        return data
 
     def __str__(self):
         return '{proxy_url} ({idx})'
@@ -155,7 +145,7 @@ class RequestConfig(object):
         """
         if not url:
             raise ValueError('URL is required!')
-        self.idx = str(idx or '')
+        self.idx = str(idx)
         self.url = url
         self.proxy_url = proxy_url
         self.headers = {}

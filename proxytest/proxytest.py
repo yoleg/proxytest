@@ -2,9 +2,6 @@
 """
 This is a simple command-line script to test if a proxy is working.
 
-All it does is fetch a web page ("http://example.com/" by default) using the
-proxies.
-
 The complexity here is just for demonstration and is totally unnecessary :)
 
 Project Homepage: https://github.com/yoleg/proxytest
@@ -163,7 +160,7 @@ class Runner(object):
             if not self.repeat_seconds:
                 # return after first run if no need to repeat
                 return
-            self.callbacks.runner_waiting(self.repeat_seconds)
+            self.callbacks.runner_waiting(self, seconds=self.repeat_seconds)
             # this blocks main thread (this is OK because nothing else is
             # expected to be running)
             time.sleep(self.repeat_seconds)
@@ -374,7 +371,8 @@ def get_argument_parser() -> argparse.ArgumentParser:
     group = parser.add_argument_group('output')
     group.add_argument('--print', '-p', dest='print', action='store_true',
                        help='Print each webpage to stdout on a successful fetch.')
-    placeholders = RequestInfo(RequestConfig('_')).get_placeholders()
+    fake_request = RequestInfo(RequestConfig('_'))
+    placeholders = get_request_placeholders(fake_request)
     group.add_argument('--format', '-f', dest='print_format', type=str, default=DEFAULT_PRINT_FORMAT,
                        help='The output format to use for --print. '
                             'Placeholders: {}. (default: {!r})'.format(
@@ -459,22 +457,35 @@ def configure_logging(options):
     root.handlers += [handler]
 
 
+def get_request_placeholders(request: RequestInfo):
+    """ Placeholders for string formatting (e.g. for logs) """
+    data = {}
+    data.update(request.config.__dict__)
+    data.update(request.status.__dict__)
+    data['request'] = str(request)
+    data['status'] = str(request.status)
+    data['config'] = str(request.config)
+    data['proxy_url'] = data['proxy_url'] or 'No Proxy'
+    return data
+
+
 class Output:
     """ A namespace to keep all of the output logic in one place and easy to extend."""
 
+    # noinspection PyUnusedLocal
     @staticmethod
-    def runner_waiting(seconds: float):
+    def runner_waiting(runner: Runner, seconds: float):
         """ Runner is waiting for the repeat timeout. """
         LOGGER.info('Waiting for {:.2f}s before repeating. Use CTRL+C to exit.'.format(seconds))
 
     # noinspection PyUnusedLocal
-    @classmethod
-    def run_start(cls, runner: Runner, start_time: float):
+    @staticmethod
+    def run_start(runner: Runner, start_time: float):
         """ Runner is about to run a backend. """
         LOGGER.info('Starting {} requests using {}.'.format(runner.request_count, runner.backend.name))
 
-    @classmethod
-    def run_end(cls, runner: Runner, start_time: float):
+    @staticmethod
+    def run_end(runner: Runner, start_time: float):
         """ The backend finished processing the requests. """
         end_time = time.monotonic()
         duration = end_time - start_time
@@ -516,17 +527,17 @@ class Output:
         else:
             LOGGER.info('SUCCEEDED: all {ran_count} {summary}'.format(**params))
 
-    @staticmethod
-    def request_start(request: RequestInfo):
+    @classmethod
+    def request_start(cls, request: RequestInfo):
         """ Start of a single request. """
-        data = request.get_placeholders()
+        data = get_request_placeholders(request)
         LOGGER.info('{proxy_url} ({idx}): Connecting to {url}'.format(**data))
 
-    @staticmethod
-    def request_end(request: RequestInfo, print_template: str = ''):
+    @classmethod
+    def request_end(cls, request: RequestInfo, print_template: str = ''):
         """ End of a single request. """
         status = request.status
-        data = request.get_placeholders()
+        data = get_request_placeholders(request)
         duration = status.finished - status.started
 
         # warn if failed
