@@ -16,7 +16,7 @@ from functools import partial
 from typing import Iterable, Iterator
 
 from . import backend
-from .request import RequestConfig, RequestInfo, SessionInfo
+from .request import ProxyTestContext, RequestConfig, RequestInfo
 from .urls import expand_proxy_url
 from .version import __version__
 
@@ -47,8 +47,8 @@ LOG_FORMAT_VERBOSE = '{asctime}.{msecs:03.0f}-{levelname}: {name}: {message}'
 LOG_DATE_FORMAT = '%y/%m/%d %H:%M:%S'
 
 
-# exit codes namespace
 class ExitCode:
+    """ Exit codes namespace """
     success = 0
     fail = 1
     unable_to_test = 2
@@ -78,6 +78,11 @@ def main() -> int:
 
 
 def run_from_command_line() -> int:
+    """
+    Load backends, process command-line arguments, and return an exit code.
+
+    :raises: UnableToTest on input or system error.
+    """
     # find and load backends (including third-party extensions)
     # see backend.py
     backend.find_backends()
@@ -107,14 +112,15 @@ def run_from_command_line() -> int:
 
 
 class Runner(object):
-    """ Processes the options and runs the requests. """
-
+    """ Runs the requests based on the parsed options."""
     @property
     def running(self) -> bool:
+        """ Whether the runner is still processing a batch of requests. """
         return bool(self.start_time)
 
     @property
     def request_count(self) -> int:
+        """ The number of requests in a single batch. """
         return len(self.context.requests)
 
     def __init__(self, options):
@@ -124,7 +130,7 @@ class Runner(object):
         """
         # parse options
         self.context = _create_context(options)
-        """:type: backend.SessionInfo """
+        """:type: backend.ProxyTestContext """
         self.backend_name = options.backend
         """:type: str """
         self.backend_processor = _get_backend_processor(name=self.backend_name)
@@ -200,8 +206,10 @@ def _get_backend_processor(name: str) -> backend.BackendInterface:
     return processor
 
 
-def _create_context(options) -> SessionInfo:
-    # create the context object to pass to the backend
+def _create_context(options) -> ProxyTestContext:
+    """
+    create the context object to pass to the backend
+    """
     try:
         requests = list(_make_requests_from_options(options))
         """:type: list[RequestInfo] """
@@ -209,7 +217,7 @@ def _create_context(options) -> SessionInfo:
         # detailed error(s) already logged in _make_requests_from_options
         raise UnableToTest('Invalid configuration!')
 
-    context = SessionInfo(
+    context = ProxyTestContext(
             # repeat as arguments for easy IDE inspections (instead of just passing in options)
             timeout=options.timeout,
             max_workers=options.workers,
@@ -329,6 +337,7 @@ def _make_requests_from_options(options) -> Iterator[RequestInfo]:
     start_callback = Output.request_start
     print_template = '' if not options.print else options.print_format
 
+    # noinspection PyMissingOrEmptyDocstring
     def end_callback(request: RequestInfo):
         return Output.request_end(request, print_template=print_template)
 
@@ -375,15 +384,18 @@ class Output:  # here, the class is just a tidy namespace, but it can be extende
 
     @staticmethod
     def runner_waiting(seconds: float):
+        """ Runner is waiting for the repeat timeout. """
         LOGGER.info('Waiting for {:.2f}s before repeating. Use CTRL+C to exit.'.format(seconds))
 
     # noinspection PyUnusedLocal
     @classmethod
     def run_start(cls, runner: Runner, start_time: float):
+        """ Runner is about to run a backend. """
         LOGGER.info('Starting {} requests using {}.'.format(runner.request_count, runner.backend_name))
 
     @classmethod
     def run_end(cls, runner: Runner, start_time: float):
+        """ The backend finished processing the requests. """
         end_time = time.monotonic() - start_time
         LOGGER.info('SUMMARY: {failed}/{ran} requests failed ({percent:.1f}%) in {duration:.2f}s.'.format(
                 failed=runner.failed_count,
@@ -394,13 +406,13 @@ class Output:  # here, the class is just a tidy namespace, but it can be extende
 
     @staticmethod
     def request_start(request: RequestInfo):
-        """ log start of request. """
+        """ Start of a single request. """
         data = request.get_placeholders()
         LOGGER.info('{log_key}: Connecting to {url}'.format(**data))
 
     @staticmethod
     def request_end(request: RequestInfo, print_template: str = ''):
-        """ log end of request. """
+        """ End of a single request. """
         status = request.status
         data = request.get_placeholders()
         duration = status.finished - status.started

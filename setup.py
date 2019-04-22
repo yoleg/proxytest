@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+The packaging script.
+
+Example:
+
+    python3 setup.py sdist bdist_wheel
+"""
 import os
 import sys
 import warnings

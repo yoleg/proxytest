@@ -1,6 +1,8 @@
 High:
 * more comments everywhere about design decisions
 * Travis - auto deploy to pypi - https://docs.travis-ci.com/user/deployment/pypi/ (encrypt password with repo name)
+* setup.cfg
+* MANIFEST.in
 
 Medium:
 * mock tests for each backend

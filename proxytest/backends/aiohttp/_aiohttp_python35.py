@@ -8,7 +8,7 @@ Requires "aiohttp" package. Useful for Python 3.5 or above.
 import asyncio
 
 from proxytest import backend
-from proxytest.request import RequestInfo, SessionInfo
+from proxytest.request import ProxyTestContext, RequestInfo
 
 try:
     # noinspection PyPackageRequirements
@@ -22,14 +22,14 @@ LOGGER = backend.get_logger(_BACKEND_NAME)
 
 
 @backend.BackendDecorator(_BACKEND_NAME)
-def process_requests(context: SessionInfo = None):
+def process_requests(context: ProxyTestContext = None):
     """ Process the requests in parallel using aiohttp."""
-    context = context or SessionInfo()
+    context = context or ProxyTestContext()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(_process_requests_coroutine(context))
 
 
-async def _process_requests_coroutine(context: SessionInfo = None):
+async def _process_requests_coroutine(context: ProxyTestContext = None):
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=context.timeout)) as session:
         batch_size = context.max_workers or len(context.requests)
         for i in range(0, len(context.requests), batch_size):

@@ -12,11 +12,14 @@ def _non_negative(number: Union[int, float, None]):
     return max([0, (number or 0)])
 
 
-class SessionInfo(object):
+class ProxyTestContext(object):
     """
-    A single object to share with the backend.
+    A single object to share with the backend processor.
 
-    Contains both state and configuration.
+    The backend processor should process all of the requests and call:
+        * RequestInfo.start() before the request starts.
+        * RequestInfo.finish(error=...) if the request fails, or
+        * RequestInfo.finish(result=...) if the request succeeds
     """
 
     # options get set here explicitly as arguments for easy IDE inspections
@@ -29,8 +32,12 @@ class SessionInfo(object):
 
 
 class RequestInfo(object):
+    """
+    Represents the configuration and state of a single request.
+    """
     @property
     def log_key(self):
+        """ A string to identify this request in the logs. """
         return '{} ({})'.format(self.config.name, self.config.proxy_url)
 
     def __init__(self, config: 'RequestConfig'):
@@ -40,6 +47,7 @@ class RequestInfo(object):
         """:type: RequestStatus"""
 
     def get_placeholders(self) -> Dict[str, Any]:
+        """ Placeholders for string formatting (e.g. for logs) """
         data = {}
         data.update(self.config.__dict__)
         data.update(self.status.__dict__)
@@ -55,7 +63,7 @@ class RequestInfo(object):
         return 'RequestInfo({!r}, {!r})'.format(self.config, self.status)
 
     def start(self):
-        # reset
+        """ Mark this request as started and call the end_callback. """
         self.status = RequestStatus()
         """:type: RequestStatus"""
         self.status.start()
@@ -63,6 +71,17 @@ class RequestInfo(object):
             self.config.start_callback(self)
 
     def finish(self, error: Exception = None, result: str = None, status_code: int = None):
+        """
+        Mark this request as finished and call the end_callback.
+
+        Either error or result is required
+
+        :param error: the Exception, on error
+        :param result: the fetched text from the URL, if successful
+        :param status_code: the status code of the response
+        """
+        if error is None and result is None:
+            raise ValueError('Either error or result is required.')
         self.status.finish(error=error, result=result, status_code=status_code)
         if self.config.end_callback:
             self.config.end_callback(self)
@@ -73,8 +92,8 @@ class RequestStatus(object):
 
     @property
     def succeeded(self):
-        assert self.finished, 'succeeded called before finished! started={!r}, finished={!r}'.format(self.started, self.finished)
-        return self.error is None
+        """ True if the request finished and did not have an error. """
+        return self.finished and self.error is None
 
     def __init__(self):
         # variables that change during processing
@@ -102,10 +121,18 @@ class RequestStatus(object):
         return ', '.join('{}={}'.format(k, v) for k, v in sorted(self.__dict__.items()))
 
     def start(self):
+        """ Mark as started. """
         assert not self.finished, repr(self)
         self.started = time.monotonic()
 
     def finish(self, error: Exception = None, result: str = None, status_code: int = None):
+        """
+        Mark this request as finished..
+
+        :param error: the Exception, on error
+        :param result: the fetched text from the URL, if successful
+        :param status_code: the status code of the response
+        """
         assert self.started, repr(self)
         self.finished = time.monotonic()
         self.error = None if not error else (str(error) or repr(error))

@@ -8,10 +8,10 @@ globals:
     * SUGGESTED_PACKAGES is a list of uninstalled packages that
         might add more backend options if installed.
 
-Backend processors are callables that accept a SessionInfo instance as a
+Backend processors are callables that accept a ProxyTestContext instance as a
 positional argument. The callable does not need to return anything.
 
-    def my_backend(info: SessionInfo):
+    def my_backend(context: ProxyTestContext):
         pass
 
 Backends add their processors to the REGISTRY by using any of the tools provided here:
@@ -38,9 +38,9 @@ import logging
 import pkgutil
 from typing import Any, Callable, Iterable, Union
 
-from .request import SessionInfo  # for type hints
+from .request import ProxyTestContext  # for type hints
 
-BackendInterface = Callable[[SessionInfo], Any]  # for type hints only
+BackendInterface = Callable[[ProxyTestContext], Any]  # for type hints only
 
 SUGGESTED_PACKAGES = []
 """ List of uninstalled packages that would add backend options. """
@@ -57,6 +57,7 @@ _IMPORT_FLAG_NAME = '__proxytest_loaded__'
 
 
 def reset_backends():
+    """ Clear the global variables populated by find_backends() """
     REGISTRY.clear()
     SUGGESTED_PACKAGES.clear()
 
@@ -203,6 +204,8 @@ class BackendDecorator(object):
 
 # option 3: abstract class that must be instantiated (problem: might forget!)
 class AbstractBackendInstance(abc.ABC):
+    """ Instantiating an instance will automatically register the instance's
+     "__call__" method as a backend and its "name" attribute as the name. """
     name = None
 
     def __init__(self, name: str = None):
@@ -212,7 +215,7 @@ class AbstractBackendInstance(abc.ABC):
         self.log = get_logger(name)
 
     @abc.abstractmethod
-    def __call__(self, context: SessionInfo):
+    def __call__(self, context: ProxyTestContext):
         pass
 
 
@@ -242,14 +245,21 @@ class BackendMeta(abc.ABCMeta):
 
 # option 5: abstract class that uses BackendMeta (clean and easy!)
 class AbstractBackend(metaclass=BackendMeta):
+    """
+    An easy way to register a backend:
+        * create a class that inherits from AbstractBackend
+        * set the name attribute to the name of your backend
+        * override the process() method with the processing logic
+    """
     name = None  # must be overridden
     """:type: str """
 
-    def __init__(self, info: SessionInfo) -> None:
+    def __init__(self, context: ProxyTestContext) -> None:
         super().__init__()
         self.log = get_logger(self.name)
-        self.process(info)
+        self.process(context)
 
     @abc.abstractmethod
-    def process(self, info: SessionInfo):
+    def process(self, context: ProxyTestContext):
+        """ Process the """
         pass

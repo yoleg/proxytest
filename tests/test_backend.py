@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-""" Tests for proxytest pluggable backends. """
+""" Tests for proxytest plugable backends. """
 import unittest
 
 from demo_extension import activate_demo_extension, deactivate_demo_extension
-from proxytest import backend, SessionInfo
+from proxytest import backend, ProxyTestContext
 
 
 class ProxyBackendImportTestCase(unittest.TestCase):
@@ -94,13 +94,13 @@ class ProxyBackendImportTestCase(unittest.TestCase):
                 super().__init__(name)
                 self.extra = extra
 
-            def __call__(self, context: SessionInfo):
+            def __call__(self, context: ProxyTestContext):
                 pass
 
         class B(backend.AbstractBackendInstance):
             name = 'class_var'
 
-            def __call__(self, context: SessionInfo):
+            def __call__(self, context: ProxyTestContext):
                 pass
 
         self.assertNotIn('class_var', backend.REGISTRY)
@@ -125,7 +125,7 @@ class ProxyBackendImportTestCase(unittest.TestCase):
     def test_AbstractBackend(self):
         with self.assertRaises(backend.ImplementationError):
             class _(backend.AbstractBackend):
-                def process(self, info: SessionInfo):
+                def process(self, context: ProxyTestContext):
                     pass
 
         self.assertFalse(backend.REGISTRY)
@@ -133,7 +133,7 @@ class ProxyBackendImportTestCase(unittest.TestCase):
         class B(backend.AbstractBackend):
             name = 'name_one'
 
-            def process(self, info: SessionInfo):
+            def process(self, context: ProxyTestContext):
                 pass
 
         self._assert_registered('name_one', B)

@@ -9,7 +9,7 @@ import functools
 from concurrent.futures import ThreadPoolExecutor
 
 from proxytest import backend
-from proxytest.request import RequestInfo, SessionInfo
+from proxytest.request import ProxyTestContext, RequestInfo
 
 try:
     # noinspection PyPackageRequirements
@@ -19,23 +19,24 @@ except ImportError:
 
 
 class RequestsBackend(backend.AbstractBackend):
+    """ Backend that uses the "requests" module for fetching the webpage. """
     name = 'requests'
 
-    def process(self, info: SessionInfo):
+    def process(self, context: ProxyTestContext):
         """ Process the requests in parallel using requests."""
         with requests.Session() as session:  # cleanup when done
-            processor = functools.partial(self._process_request, session=session, timeout=info.timeout)
+            processor = functools.partial(self._process_request, session=session, timeout=context.timeout)
 
             # no threads if only one worker
-            if info.max_workers == 1:
-                for request in info.requests:
+            if context.max_workers == 1:
+                for request in context.requests:
                     processor(request=request)
                 return
 
             # otherwise use threads
-            max_workers = info.max_workers if info.max_workers > 0 else len(info.requests)
+            max_workers = context.max_workers if context.max_workers > 0 else len(context.requests)
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                for request in info.requests:
+                for request in context.requests:
                     executor.submit(processor, request)
 
     def _process_request(self, request: RequestInfo, session: requests.Session, timeout: float = None):

@@ -1,5 +1,6 @@
-# exports
-from .proxytest import *
+""" The proxytest package. """
+from .proxytest import *  # exports
+
 from .version import __version__
 
 # I want this __init__.py file here, but I also want proxytest.backends

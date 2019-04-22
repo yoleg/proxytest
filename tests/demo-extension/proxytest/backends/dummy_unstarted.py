@@ -4,11 +4,11 @@ Example backend that does absolutely nothing, not even marking requests as start
 Used for testing.
 """
 from proxytest import backend
-from proxytest.request import SessionInfo
+from proxytest.request import ProxyTestContext
 
 
 class DummyBackend(backend.AbstractBackend):
     name = 'dummy-unstarted'
 
-    def process(self, info: SessionInfo):
+    def process(self, context: ProxyTestContext):
         pass
