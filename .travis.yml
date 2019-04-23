@@ -21,3 +21,17 @@ before_script:
 
 # command to run tests
 script: nosetests
+
+# build and upload pypi package
+deploy:
+  distributions: "sdist bdist_wheel"
+  provider: pypi
+  user: yoleg
+  # encrypted Travis-CI password, generated with:
+  #   gem install --user travis
+  #   gem update --user travis
+  #   alias travis='~/.gem/ruby/2.5.0/bin/travis'
+  #   read -sp 'Enter password: ' PASS
+  #   travis encrypt $PASS --add deploy.password
+  password:
+    secure: JUmDGZffq8zdFymKSMEMurtP9zoO7L+6M0cFaCfne61E2EU+AGsNybk1VcEgPJGZP/v5nmz5hHSFqq7njovdukPjMDS8lZuBZC0dVeZ4EdEtBR5C1pfwPzaYIajbdVqqf+ImbfFkqv7SiOi3NkaTViXZ+f0OQqPCLWkzkADL9omIqRMrU7cfDt9iE9NtuvS1bMb0fWioN2QQOCRwb9IfEckYwD2wtKwDJs4V7GlzOjfvxzl5oLXLbIKMD1+SFIg20blvRfgyC9l8V25QlMBQbIDWwEBbGCekvHMv9FlN9PJOSWYuBhpW02rr0BH7nXaEmxQNGguzWwYnKWZ0omN4zR4rXW+SfAmvgsF5uf5CGyjVMPTXLvk/wBVLbdpOSx6n4MWRCUGMhR0ueSytqs+BqWUj+0uUg1ZBPsPd8eBFriVt4jg4Ta3a6Q7urlCi7IbF/No9lb16aGa6Ws9a/wqT0CIXRBjsVrtNQhgii/y4pzFUvxEI217cKL5o88bc/1Gu5OeMwMmaa4u35LztveU6QvoGAWqUmH31VjEI4R5LMMTlpIprr6Vb9hTnbrCPpu1td03FT/KrUlmJPjyqQSilxr+Xkws9vRKFHRYxrGzaB3MYNIEXyGC9XOqRK+fOTQ7E7zWBlkOgqCQCvtEPv4GSNlXJcQX43GyG/fvhQGkPhpM=
