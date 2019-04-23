@@ -27,19 +27,30 @@ script: nosetests
 
 # build and upload pypi package
 deploy:
-  provider: pypi
-  distributions: "sdist bdist_wheel"
-  on:
-    repo: yoleg/proxytest
-    branches:
-      only:
-        - master
-  user: yoleg
-  # encrypted Travis-CI password, generated with:
-  #   gem install --user travis
-  #   gem update --user travis
-  #   alias travis='~/.gem/ruby/2.5.0/bin/travis'
-  #   read -sp 'Enter password: ' PASS
-  #   travis encrypt $PASS --add deploy.password
-  password:
-    secure: JUmDGZffq8zdFymKSMEMurtP9zoO7L+6M0cFaCfne61E2EU+AGsNybk1VcEgPJGZP/v5nmz5hHSFqq7njovdukPjMDS8lZuBZC0dVeZ4EdEtBR5C1pfwPzaYIajbdVqqf+ImbfFkqv7SiOi3NkaTViXZ+f0OQqPCLWkzkADL9omIqRMrU7cfDt9iE9NtuvS1bMb0fWioN2QQOCRwb9IfEckYwD2wtKwDJs4V7GlzOjfvxzl5oLXLbIKMD1+SFIg20blvRfgyC9l8V25QlMBQbIDWwEBbGCekvHMv9FlN9PJOSWYuBhpW02rr0BH7nXaEmxQNGguzWwYnKWZ0omN4zR4rXW+SfAmvgsF5uf5CGyjVMPTXLvk/wBVLbdpOSx6n4MWRCUGMhR0ueSytqs+BqWUj+0uUg1ZBPsPd8eBFriVt4jg4Ta3a6Q7urlCi7IbF/No9lb16aGa6Ws9a/wqT0CIXRBjsVrtNQhgii/y4pzFUvxEI217cKL5o88bc/1Gu5OeMwMmaa4u35LztveU6QvoGAWqUmH31VjEI4R5LMMTlpIprr6Vb9hTnbrCPpu1td03FT/KrUlmJPjyqQSilxr+Xkws9vRKFHRYxrGzaB3MYNIEXyGC9XOqRK+fOTQ7E7zWBlkOgqCQCvtEPv4GSNlXJcQX43GyG/fvhQGkPhpM=
+  - provider: pypi
+    server: https://test.pypi.org/legacy/
+    user: yoleg
+    password:
+      # encrypted password generated with:
+      #   gem install --user travis
+      #   gem update --user travis
+      #   alias travis='~/.gem/ruby/2.5.0/bin/travis'
+      #   read -sp 'Enter password: ' PASS
+      #   travis encrypt $PASS --add deploy.password
+      secure: HEvDzTwFISnSp/0wTzbPd5xMbOLhHS+c24e+64YMG5A3jxNmhm5Uiqm/s7Gz3+FSrNj2GfRTURRx/MasaNtHKl8Lyfcf5/mwRkBZOWjz1zkyQIk2YsdNrPoo5iRlGv6jz8zeSPpKOKFPVALrS6vxM2IP10PPaLcdRiJCVJRW84+prHeYITmvnfemLp49tWnh1uZsp42uKBP93H6l17wm1A8RHBm1sVcUB4Wpd4kbT5fyQhYfjgt7zHjiu7xD/sKjGacpXu9T4x5HFfVJgOQbYrOSq8a1oNkWh277dsguR0EM3v4g8QZuhzoatq8OESQMl4GEVbTDrJVbDfsFhCaNwPekxBAkz63vMR+JxagK85IsAS5IIAUr9Ef7QmJDoldYWOqWVWIchXHJpDCh28AndU9GRK7D7kme8UjJr9OjYbkcu6/jXPMq24jlwrWmw+h/om0RqKogOde/rqSdTkks6c18ZsfEKU1XoL2ziXAotRd9GEreLRt11PRclPpYJOyOkUJLZWuJ9fZA99vQrnakt7RBtH44PFFMhjSEMgAlrKSRo2KFn+buQd1WhoyzFpuaamA9rQCApGl7LRIVNqS1VRCXb0SoxEYgwLlaKRCOUaNNrqUm0dqmmrb6YyzHoZMkP7J4oO5TBHlzc73IgCtWREUL8Q+KcmBA7X9WIQRbQDs=
+    distributions: sdist bdist_wheel
+    on:
+      branch: master
+      python: 3.6
+      tags: false
+
+  - provider: pypi
+    server: https://upload.pypi.org/legacy/
+    user: yoleg
+    password:
+      secure: JUmDGZffq8zdFymKSMEMurtP9zoO7L+6M0cFaCfne61E2EU+AGsNybk1VcEgPJGZP/v5nmz5hHSFqq7njovdukPjMDS8lZuBZC0dVeZ4EdEtBR5C1pfwPzaYIajbdVqqf+ImbfFkqv7SiOi3NkaTViXZ+f0OQqPCLWkzkADL9omIqRMrU7cfDt9iE9NtuvS1bMb0fWioN2QQOCRwb9IfEckYwD2wtKwDJs4V7GlzOjfvxzl5oLXLbIKMD1+SFIg20blvRfgyC9l8V25QlMBQbIDWwEBbGCekvHMv9FlN9PJOSWYuBhpW02rr0BH7nXaEmxQNGguzWwYnKWZ0omN4zR4rXW+SfAmvgsF5uf5CGyjVMPTXLvk/wBVLbdpOSx6n4MWRCUGMhR0ueSytqs+BqWUj+0uUg1ZBPsPd8eBFriVt4jg4Ta3a6Q7urlCi7IbF/No9lb16aGa6Ws9a/wqT0CIXRBjsVrtNQhgii/y4pzFUvxEI217cKL5o88bc/1Gu5OeMwMmaa4u35LztveU6QvoGAWqUmH31VjEI4R5LMMTlpIprr6Vb9hTnbrCPpu1td03FT/KrUlmJPjyqQSilxr+Xkws9vRKFHRYxrGzaB3MYNIEXyGC9XOqRK+fOTQ7E7zWBlkOgqCQCvtEPv4GSNlXJcQX43GyG/fvhQGkPhpM=
+    distributions: sdist bdist_wheel
+    on:
+      branch: master
+      python: 3.6
+      tags: true
