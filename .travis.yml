@@ -27,8 +27,13 @@ script: nosetests
 
 # build and upload pypi package
 deploy:
-  distributions: "sdist bdist_wheel"
   provider: pypi
+  distributions: "sdist bdist_wheel"
+  on:
+    repo: yoleg/proxytest
+    branches:
+      only:
+        - master
   user: yoleg
   # encrypted Travis-CI password, generated with:
   #   gem install --user travis
