@@ -1,13 +1,16 @@
 language: python
 cache: pip
 matrix:
+  fast_finish: true
   include:
-#    - python: "3.4"
+    - python: "3.4"
     - python: "3.5"
     - python: "3.6"
     - python: "3.7"
       dist: xenial    # required for Python 3.7 (travis-ci/travis-ci#9069)
       sudo: required  # required for Python 3.7 (travis-ci/travis-ci#9069)
+  allow_failures:
+    - python: "3.4"  # TODO: ignore only flake8 syntax errors in asyncio backend
 
 # command to install dependencies
 install: "pip install -r requirements/development.txt"
