@@ -1,10 +1,11 @@
 """ Expands command-line proxy URLs into full, valid proxy URLs"""
+from typing import Iterator, Tuple
 from urllib.parse import urlparse
 
-from typing import Iterator, Tuple
+DEFAULT_PORT = 8080
 
 
-def expand_proxy_url(proxy_url: str, default_port: int = 8080) -> Iterator[str]:
+def expand_proxy_url(proxy_url: str, default_port: int = DEFAULT_PORT) -> Iterator[str]:
     """ parse the proxies from command-line arguments, which are strings such as 'user:pass@1.2.3.4:8080-8084', generating single-port URLs """
     if not proxy_url:
         raise ValueError('proxy_url is required')

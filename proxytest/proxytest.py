@@ -16,7 +16,7 @@ from typing import Iterable, Iterator
 
 from . import backend
 from .context import ProxyTestContext, RequestConfig, RequestInfo
-from .urls import expand_proxy_url
+from .urls import DEFAULT_PORT, expand_proxy_url
 from .version import __version__
 
 LOGGER = logging.getLogger('proxytest')
@@ -206,20 +206,18 @@ class Runner(object):
             self.processor = self._find_processor()
 
         def _find_processor(self) -> backend.ProcessorInterface:
+            suggestions = backend.get_recommendation(excluded=[self.name])
             if not backend.REGISTRY:
-                raise UnableToTest('No backends available! Try installing '
-                                   'one of the following packages: {}' +
-                                   ', '.join(backend.SUGGESTED_PACKAGES))
-            available_msg = 'Available backends: ' + ', '.join(sorted(backend.REGISTRY))
+                raise UnableToTest('No backends available! ' + suggestions)
             try:
                 processor = backend.REGISTRY[self.name]
                 """ :type: backend.ProcessorInterface """
             except KeyError:
                 raise UnableToTest('Backend {!r} is not available. {}'
-                                   .format(self.name, available_msg))
+                                   .format(self.name, suggestions))
             if not callable(processor):
                 raise UnableToTest('Invalid processor in backend {}: {!r}! {}'
-                                   .format(self.name, processor, available_msg))
+                                   .format(self.name, processor, suggestions))
             return processor
 
     class ContextBuilder:
@@ -332,28 +330,26 @@ def get_argument_parser() -> argparse.ArgumentParser:
 
     # required arguments - variable number of proxy URLs
     parser.add_argument('proxies', metavar='PROXYHOST:STARTPORT[-ENDPORT]', type=str, nargs='+',
-                        help='The proxy host/ports to use. -ENDPORT is optional. '
-                             'Example: 1.2.3.4:8080 1.2.3.4:8080-8090. '
-                             'Use "{}" to call the webpage directly.'.format(NO_PROXY))
+                        help=' '.join([  # to avoid forget spaces after periods
+                            'The proxy host/ports to use.',
+                            '-ENDPORT is optional.',
+                            'Example: "1.2.3.4:8080" "1.2.3.4:8080-8090".',
+                            'Port defaults to {}.'.format(DEFAULT_PORT),
+                            'Use "{}" to call the webpage directly.'.format(NO_PROXY)
+                        ]))
 
     # optional arguments
     parser.add_argument('--agent', '-a', dest='agent', type=str,
                         help='The user agent string to use. (default: random)')
 
     # which backend to use
-    available_backends = sorted(backend.REGISTRY)
     backend_order = sorted((x for x in backend.REGISTRY if x != 'dummy'))
-    backend_order.append('dummy')
+    backend_order.append('dummy')  # dummy backend is last resort
     default_backend = backend_order[0]
-    also_text = ''
-    if backend.SUGGESTED_PACKAGES:
-        also_text = 'For more backends, install: {}.'.format(', '.join(backend.SUGGESTED_PACKAGES))
-    backend_help = 'The backend to use. Available backends: {choices}. (default: {default}) {also_text}'.format(
-            choices=', '.join(available_backends) or 'None available!',
-            also_text=also_text,
-            default=default_backend,
-    )
-    parser.add_argument('--backend', '-b', dest='backend', type=str, default=default_backend, help=backend_help)
+    suggestions = backend.get_recommendation()
+    parser.add_argument('--backend', '-b', dest='backend', type=str, default=default_backend,
+                        help=('The backend to use. (default: {default}) {suggestions}'
+                              .format(default=default_backend, suggestions=suggestions)))
 
     # request configuration options
     parser.add_argument('--number', '-n', dest='number', type=integer_argument, default=1,

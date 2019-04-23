@@ -110,6 +110,28 @@ def import_exception_manager(name):
         LOGGER.debug('Unsupported backend: {}'.format(name))
 
 
+# standardize backend recommendation messages
+
+def get_recommendation(excluded: Iterable[str] = None):
+    """
+    A standard message to recommend backends and suggested packages to user.
+
+    :param excluded: backend names to ignore
+    """
+    return ' '.join(_iter_recommendations(excluded))
+
+
+def _iter_recommendations(excluded: Iterable[str] = None):
+    other_backends = sorted(set(REGISTRY) - set(excluded or []))
+    if other_backends:
+        joined = ', '.join(('"{}"'.format(p) for p in other_backends))
+        yield 'Available backends: {}.'.format(joined)
+
+    if SUGGESTED_PACKAGES:
+        joined = ' '.join(SUGGESTED_PACKAGES)
+        yield 'For more backends run "pip install {}".'.format(joined)
+
+
 # standardize logging
 
 def get_logger(name: str) -> logging.Logger:

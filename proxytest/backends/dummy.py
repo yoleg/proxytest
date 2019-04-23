@@ -1,7 +1,7 @@
 """
-Example backend that marks requests as done without doing anything.
+Example backend that marks requests as failed without actually processing them.
 
-Used for testing.
+Used for testing/ demonstration.
 """
 from proxytest import backend
 from proxytest.context import ProxyTestContext
@@ -18,7 +18,13 @@ class DummyBackend(backend.AbstractBackend):
 
     def process(self, context: ProxyTestContext):
         """ Process the requests one at a time, doing nothing.."""
+        # warn the user that this is not a good backend to use
+        suggestions = backend.get_recommendation(excluded=[self.name])
+        self.log.warning('The "{}" backend is for demonstration only. {}'
+                         .format(self.name, suggestions))
+
+        # simulate an error for each request
         for request in context.requests:
             request.start()
-            self.log.warning('DUMMY: doing nothing!')
-            request.finish(error=DummyError('DUMMY: nothing tested!'))
+            pass  # do nothing
+            request.finish(error=DummyError('DUMMY: nothing done!'))

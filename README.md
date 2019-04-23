@@ -11,20 +11,37 @@ It's also an excuse for me to play with Travis, pypi, and namespace packages.
 
 ## Installation:
 
-Requires Python 3.4 or above.
+Requires Python 3.4 or above (Python 3.5 and above recommended).
+
+Install with only the `simple` and `dummy` backends (no dependencies):
 
 ```
 python3 -m pip install proxytest
 ```
 
+Install all recommended backends (has additional dependencies):
+
+```
+python3 -m pip install proxytest[all]
+```
+
+Install backends explicitly:
+
+```
+python3 -m pip install proxytest[aiohttp] proxytest[requests]
+```
+
+
 ## Examples:
 
 ```
-proxytest http://1.2.3.4:8080 http://1.2.3.4:8081
+proxytest http://1.2.3.4 http://1.2.3.4:8081  # port defaults to 8080
 
 proxytest 1.2.3.4:8080-8081  # same as above
 
-proxytest -v -n 10 --timeout 1 "http://user:pass@exampleproxy.cofm:3128" "111.222.333.444:8080-8082" "111.222.333.444:8085-8090"
+proxytest 1.2.3.4  --backend requests  # change backend
+
+proxytest -v -n 10 --timeout 1 "https://user:pass@exampleproxy.cofm:3128" "111.222.333.444:8080-8082" "111.222.333.444:8085-8090"
 
 proxytest "1.2.3.4:1234" --url="https://example.com"  --print
 
@@ -91,14 +108,17 @@ output:
 ```
 
 ## Backends:
- 
-Built-in backends:
 
-* aiohttp - asyncio support (requires: `aiohttp`, Python >= 3.5.3)
-* requests - useful for Python 3.4, supports HTTPS proxies (requires: `requests`)
+**Built-in backends:**
+
+* simple - simple backend that uses only Python Standard Library modules
 * dummy - does not make any outgoing connections
 
-Third-party extensions can add backends by using the `proxytest.backends` [namespace package](https://packaging.python.org/guides/packaging-namespace-packages/). See the `tests/` directory for an example.
+**Optional backends:**
+* aiohttp - asyncio support (requires: `aiohttp`, Python >= 3.5.3)
+* requests - useful for Python 3.4, supports HTTPS proxies (requires: `requests`)
+
+**Third-party extensions** can add backends by using the `proxytest.backends` [namespace package](https://packaging.python.org/guides/packaging-namespace-packages/). See the `tests/` directory for an example.
 
 If a backend's requirements have not been met, the `--help` description for the `--backend` option will show a list of recommended packages to install that would enable more backends.
 

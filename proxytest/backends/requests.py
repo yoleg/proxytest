@@ -5,10 +5,8 @@ Uses threading for concurrency.
 
 Requires "requests" package. Useful for Python 3.4. Supports https proxies, unlike aiohttp (as of aiohttp 3.5.4).
 """
-import functools
-from concurrent.futures import ThreadPoolExecutor
 
-from proxytest import backend
+from proxytest import backend, parallel
 from proxytest.context import ProxyTestContext, RequestInfo
 
 try:
@@ -25,19 +23,15 @@ class RequestsBackend(backend.AbstractBackend):
     def process(self, context: ProxyTestContext):
         """ Process the requests in parallel using requests."""
         with requests.Session() as session:  # cleanup when done
-            processor = functools.partial(self._process_request, session=session, timeout=context.timeout)
+            # parallel.process_requests example using closure
+            def _process(request: RequestInfo):
+                self._process_request(request, session=session, timeout=context.timeout)
 
-            # no threads if only one worker
-            if context.max_workers == 1:
-                for request in context.requests:
-                    processor(request=request)
-                return
-
-            # otherwise use threads
-            max_workers = context.max_workers if context.max_workers > 0 else len(context.requests)
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                for request in context.requests:
-                    executor.submit(processor, request)
+            parallel.process_requests(
+                    requests=context.requests,
+                    callback=_process,
+                    max_workers=context.max_workers
+            )
 
     def _process_request(self, request: RequestInfo, session: requests.Session, timeout: float = None):
         """ Make a GET request to the URL, optionally using a proxy URL."""
