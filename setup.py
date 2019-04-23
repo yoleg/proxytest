@@ -14,18 +14,24 @@ from setuptools import setup
 
 import proxytest
 
-if sys.version_info < (3, 5):
-    warnings.warn('Python 3.5 or above is recommended!')
+if sys.version_info < (3, 4):
+    warnings.warn('Python 3.4 or above is recommended!')
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md'), "r") as fh:
     long_description = fh.read()
 
 install_requires = [
-    'aiohttp>=3.5.4,<4.0; python_version>="3.5.3"',
-    'requests>=2.21.0,<3.0; python_version<"3.5.3"',
-    'typing>=3.6.6,<4.0; python_version<"3.5.0"'
+    'typing>=3.6.0,<4.0; python_version<"3.5.0"'
 ]
-
+extras_require = {
+    'requests': ['requests'],
+    'aiohttp': ['aiohttp'],
+}
+if sys.version_info >= (3, 5, 3):
+    extras_require['aiohttp'] = ['aiohttp']
+all_extra_requires = [name for requires in extras_require.values()
+                      for name in requires]
+extras_require['all'] = sorted(set(all_extra_requires))
 
 setup(
     name='proxytest',
@@ -34,6 +40,7 @@ setup(
     long_description=long_description,
     classifiers=[
         "Environment :: Console",
+        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
@@ -56,4 +63,5 @@ setup(
         ]
     },
     install_requires=install_requires,
+        extras_require=extras_require,
 )

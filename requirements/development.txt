@@ -1,0 +1,11 @@
+-r base.txt
+-r all-backends.txt
+
+# testing
+pytest
+
+# syntax
+flake8
+
+# package upload
+twine
