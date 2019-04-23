@@ -13,7 +13,7 @@ It's also an excuse for me to play with Travis, pypi, and namespace packages.
 
 Requires Python 3.4 or above (Python 3.5 and above recommended).
 
-Install with only the `simple` and `dummy` backends (no dependencies):
+Install with default backends (no dependencies):
 
 ```
 python3 -m pip install proxytest
