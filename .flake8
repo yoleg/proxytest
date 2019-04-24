@@ -1,3 +1,17 @@
 [flake8]
-# personal preference!
+# longer max line length (personal preference!)
 max-line-length = 160
+
+# config
+count = true
+show-source = true
+statistics = true
+
+per-file-ignores = __init__.py:F401,F403
+
+exclude =
+    .git,
+    __pycache__,
+    build,
+    scripts,
+    dist
