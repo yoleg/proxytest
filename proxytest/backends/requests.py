@@ -35,18 +35,22 @@ class RequestsBackend(backend.AbstractBackend):
 
     def _process_request(self, request: RequestInfo, session: requests.Session, timeout: float = None):
         """ Make a GET request to the URL, optionally using a proxy URL."""
+        request.start()
+        try:
+            result = self._get_result(request, session, timeout)
+        except Exception as e:
+            request.finish(error=e)
+        else:
+            request.finish(result=result)
+
+    def _get_result(self, request, session, timeout):
         proxies = None
         if request.config.proxy_url:
             proxies = {
                 'http': request.config.proxy_url,
                 'https': request.config.proxy_url,
             }
-        request.start()
-        try:
-            response = session.request('GET', url=request.config.url, headers=request.config.headers,
-                                       proxies=proxies, allow_redirects=True, timeout=timeout)
-            response.raise_for_status()
-        except Exception as e:
-            request.finish(error=e)
-        else:
-            request.finish(result=response.text)
+        response = session.request('GET', url=request.config.url, headers=request.config.headers,
+                                   proxies=proxies, allow_redirects=True, timeout=timeout)
+        response.raise_for_status()
+        return response.text

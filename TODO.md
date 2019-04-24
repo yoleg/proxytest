@@ -10,3 +10,4 @@ General:
 Proxy-specific:
 * support more HTTP options for the test URL
 * support more proxy options
+* test user auth with cntlm

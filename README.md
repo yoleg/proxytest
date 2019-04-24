@@ -9,6 +9,24 @@ But the *main* purpose of proxytest is to be a Python **coding sample**, so it h
 
 It's also an excuse for me to play with Travis, pypi, and namespace packages.
 
+## Examples:
+
+```
+proxytest exampleproxy.com http://exampleproxy.com:8081  # port defaults to 8080, scheme to http
+
+proxytest exampleproxy.com:8080-8081  # same as above (port range expansion)
+
+proxytest 1.2.3.4  --backend requests  # use another backend
+
+proxytest -v -n 10 --timeout 1 "https://user:pass@1.2.3.4:3128" "111.222.111.222:8080-8086"
+
+proxytest "1.2.3.4:1234" --url="https://example.com"  --print
+
+proxytest --help
+
+python3 -m proxytest --version
+```
+
 ## Installation:
 
 Requires Python 3.4 or above (Python 3.5 and above recommended).
@@ -32,23 +50,20 @@ python3 -m pip install proxytest[aiohttp] proxytest[requests]
 ```
 
 
-## Examples:
+## Backends:
 
-```
-proxytest http://1.2.3.4 http://1.2.3.4:8081  # port defaults to 8080
+**Built-in backends:**
 
-proxytest 1.2.3.4:8080-8081  # same as above
+* simple - simple backend that uses only Python Standard Library modules
+* dummy - does not make any outgoing connections
 
-proxytest 1.2.3.4  --backend requests  # change backend
+**Optional backends:**
+* aiohttp - asyncio support (requires: `aiohttp`, Python >= 3.5.3)
+* requests - useful for Python 3.4, supports HTTPS proxies (requires: `requests`)
 
-proxytest -v -n 10 --timeout 1 "https://user:pass@exampleproxy.cofm:3128" "111.222.333.444:8080-8082" "111.222.333.444:8085-8090"
+**Third-party extensions** can add backends by using the `proxytest.backends` [namespace package](https://packaging.python.org/guides/packaging-namespace-packages/). See the `tests/` directory for an example.
 
-proxytest "1.2.3.4:1234" --url="https://example.com"  --print
-
-proxytest --help
-
-python3 -m proxytest --version
-```
+If a backend's requirements have not been met, the `--help` description for the `--backend` option will show a list of recommended packages to install that would enable more backends.
 
 ## Command-line Arguments:
 
@@ -106,21 +121,6 @@ output:
   --verbose, -v         Enable verbose logging to stderr.
 
 ```
-
-## Backends:
-
-**Built-in backends:**
-
-* simple - simple backend that uses only Python Standard Library modules
-* dummy - does not make any outgoing connections
-
-**Optional backends:**
-* aiohttp - asyncio support (requires: `aiohttp`, Python >= 3.5.3)
-* requests - useful for Python 3.4, supports HTTPS proxies (requires: `requests`)
-
-**Third-party extensions** can add backends by using the `proxytest.backends` [namespace package](https://packaging.python.org/guides/packaging-namespace-packages/). See the `tests/` directory for an example.
-
-If a backend's requirements have not been met, the `--help` description for the `--backend` option will show a list of recommended packages to install that would enable more backends.
 
 ## Output:
 
