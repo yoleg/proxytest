@@ -22,7 +22,7 @@ install: "pip install -r requirements/development.txt"
 before_script:
   - pip install flake8
   # stop the build if there are Python syntax errors or undefined names
-  - test -n "$FLAKE8" && flake8 .
+  - test -n "$FLAKE8" && flake8 . || true
 
 # command to run tests
 script: nosetests
