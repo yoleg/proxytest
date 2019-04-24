@@ -265,17 +265,17 @@ class Runner(object):
                 iterator = self._expand_proxy_urls(options.proxies)
                 for i, proxy_url in enumerate(iterator):
                     config = RequestConfig(
-                            # name for easy ID in logs
-                            idx=i,
+                        # name for easy ID in logs
+                        idx=i,
 
-                            # request options
-                            proxy_url=proxy_url or None,
-                            url=options.test_url,
-                            user_agent=options.agent or random.choice(USER_AGENTS),
+                        # request options
+                        proxy_url=proxy_url or None,
+                        url=options.test_url,
+                        user_agent=options.agent or random.choice(USER_AGENTS),
 
-                            # callbacks keep output logic out of RequestConfig
-                            start_callback=start_callback,
-                            end_callback=end_callback,
+                        # callbacks keep output logic out of RequestConfig
+                        start_callback=start_callback,
+                        end_callback=end_callback,
                     )
                     yield RequestInfo(config)
 
@@ -371,8 +371,8 @@ def get_argument_parser() -> argparse.ArgumentParser:
     placeholders = get_request_placeholders(fake_request)
     group.add_argument('--format', '-f', dest='print_format', type=str, default=DEFAULT_PRINT_FORMAT,
                        help='The output format to use for --print. '
-                            'Placeholders: {}. (default: {!r})'.format(
-                               ', '.join(sorted(placeholders)), DEFAULT_PRINT_FORMAT))
+                            'Placeholders: {}. (default: {!r})'
+                       .format(', '.join(sorted(placeholders)), DEFAULT_PRINT_FORMAT))
     group.add_argument('--quiet', '-q', dest='quiet', action='store_true',
                        help='Suppress logging. Overrides --debug and --verbose, '
                             'but --print will still work.')
@@ -492,18 +492,18 @@ class Output:
         success_count = total_count - failed_count
         success_count_total = runner.ran_count - runner.failed_count
         params = dict(
-                fail_count=failed_count,
-                success_count=success_count,
-                ran_count=total_count,
-                fail_percent=(failed_count / total_count) * 100,
-                success_percent=(success_count / total_count) * 100,
-                duration=duration,
-                duration_total=duration_total,
-                fail_list=' '.join(failed_proxies),
-                fail_count_total=runner.failed_count,
-                success_count_total=success_count_total,
-                fail_percent_total=(runner.failed_count / runner.ran_count) * 100,
-                success_percent_total=(success_count_total / runner.ran_count) * 100,
+            fail_count=failed_count,
+            success_count=success_count,
+            ran_count=total_count,
+            fail_percent=(failed_count / total_count) * 100,
+            success_percent=(success_count / total_count) * 100,
+            duration=duration,
+            duration_total=duration_total,
+            fail_list=' '.join(failed_proxies),
+            fail_count_total=runner.failed_count,
+            success_count_total=success_count_total,
+            fail_percent_total=(runner.failed_count / runner.ran_count) * 100,
+            success_percent_total=(success_count_total / runner.ran_count) * 100,
         )
 
         # summary changes based on results
@@ -548,7 +548,7 @@ class Output:
                                                duration=duration, **data))
         if print_template:
             print(print_template.format(
-                    result_flat=' '.join(str(status.result).splitlines()),
-                    duration=duration,
-                    **data
+                result_flat=' '.join(str(status.result).splitlines()),
+                duration=duration,
+                **data
             ))

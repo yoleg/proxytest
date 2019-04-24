@@ -28,9 +28,9 @@ class RequestsBackend(backend.AbstractBackend):
                 self._process_request(request, session=session, timeout=context.timeout)
 
             parallel.process_requests(
-                    requests=context.requests,
-                    callback=_process,
-                    max_workers=context.max_workers
+                requests=context.requests,
+                callback=_process,
+                max_workers=context.max_workers
             )
 
     def _process_request(self, request: RequestInfo, session: requests.Session, timeout: float = None):

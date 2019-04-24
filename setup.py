@@ -41,35 +41,35 @@ all_extra_requires = [name for requires in extras_require.values()
 extras_require['all'] = sorted(set(all_extra_requires))
 
 setup(
-        name='proxytest',
-        version=proxytest.__version__,
-        description='A simple script to test if one or more HTTP proxies are '
-                    'working by fetching a webpage.',
-        long_description=long_description,
-        classifiers=[
-            "Environment :: Console",
-            "Programming Language :: Python :: 3.4",
-            "Programming Language :: Python :: 3.5",
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
-        ],
-        keywords='proxy test command multiple proxies',
-        author='Oleg Pryadko',
-        author_email='oleg@olegpryadko.com',
-        maintainer='Oleg Pryadko',
-        maintainer_email='oleg@olegpryadko.com',
-        url='https://github.com/yoleg/proxytest',
-        license='MIT',
-        packages=[
-            'proxytest',
-            'proxytest.backends',
-            'proxytest.backends.aiohttp',
-        ],
-        entry_points={
-            'console_scripts': [
-                'proxytest = proxytest.proxytest:run_from_command_line',
-            ]
-        },
-        install_requires=install_requires,
-        extras_require=extras_require,
+    name='proxytest',
+    version=proxytest.__version__,
+    description='A simple script to test if one or more HTTP proxies are '
+                'working by fetching a webpage.',
+    long_description=long_description,
+    classifiers=[
+        "Environment :: Console",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+    ],
+    keywords='proxy test command multiple proxies',
+    author='Oleg Pryadko',
+    author_email='oleg@olegpryadko.com',
+    maintainer='Oleg Pryadko',
+    maintainer_email='oleg@olegpryadko.com',
+    url='https://github.com/yoleg/proxytest',
+    license='MIT',
+    packages=[
+        'proxytest',
+        'proxytest.backends',
+        'proxytest.backends.aiohttp',
+    ],
+    entry_points={
+        'console_scripts': [
+            'proxytest = proxytest.proxytest:run_from_command_line',
+        ]
+    },
+    install_requires=install_requires,
+    extras_require=extras_require,
 )

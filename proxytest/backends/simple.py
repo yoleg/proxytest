@@ -27,9 +27,9 @@ class SimpleBackend(backend.AbstractBackend):
         _processor = functools.partial(self._process_request, context=context)
         """:type: (RequestInfo) -> None """
         parallel.process_requests(
-                requests=context.requests,
-                callback=_processor,
-                max_workers=context.max_workers
+            requests=context.requests,
+            callback=_processor,
+            max_workers=context.max_workers
         )
 
     def _process_request(self, request: RequestInfo, context: ProxyTestContext):

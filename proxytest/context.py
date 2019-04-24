@@ -35,6 +35,7 @@ class RequestInfo(object):
     """
     Represents the configuration and state of a single request.
     """
+
     @property
     def log_key(self):
         """ A string to identify this request in the logs. """

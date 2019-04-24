@@ -1,5 +1,5 @@
 """ The proxytest package. """
-from .proxytest import *  # exports
+from .proxytest import *
 
 from .version import __version__
 
@@ -7,4 +7,4 @@ from .version import __version__
 # to be a namespace package. "pkgutil-style" seems to be the answer here!
 # see https://packaging.python.org/guides/packaging-namespace-packages/#pkgutil-style-namespace-packages
 # noinspection PyUnboundLocalVariable
-__path__ = __import__('pkgutil').extend_path(__path__, __name__)
+__path__ = __import__('pkgutil').extend_path(__path__, __name__)  # noqa: F405
