@@ -1,2 +1,1 @@
-# typing backports
-typing>=3.6.6,<4.0; python_version<"3.5.0"
+-r _base.txt

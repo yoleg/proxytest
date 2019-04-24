@@ -1,2 +1,1 @@
--r base.txt
-aiohttp
+aiohttp>=3.5.0,<4.0

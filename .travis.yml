@@ -7,20 +7,17 @@ matrix:
   include:
     - python: "3.4"
       env:
-        - FLAKE8=
+        - FLAKE8=  # flake8 has syntax errors in the optional aiohttp backend
     - python: "3.5"
     - python: "3.6"
     - python: "3.7"
       dist: xenial    # required for Python 3.7 (travis-ci/travis-ci#9069)
       sudo: required  # required for Python 3.7 (travis-ci/travis-ci#9069)
-  allow_failures:
-    - python: "3.4"  # TODO: ignore only flake8 syntax errors in asyncio backend
 
 # command to install dependencies
 install: "pip install -r requirements/travis.txt"
 
 before_script:
-  - pip install flake8
   # stop the build if there are Python syntax errors or undefined names
   - test -n "$FLAKE8" && flake8 . || true
 
@@ -29,6 +26,8 @@ script: nosetests
 
 # build and upload pypi package
 deploy:
+
+  # test repo upload on all commits
   - provider: pypi
     server: https://test.pypi.org/legacy/
     # avoid failing build when pypi rejects duplicate upload
@@ -48,10 +47,10 @@ deploy:
       #   travis encrypt $PASS --add deploy.password
       secure: HEvDzTwFISnSp/0wTzbPd5xMbOLhHS+c24e+64YMG5A3jxNmhm5Uiqm/s7Gz3+FSrNj2GfRTURRx/MasaNtHKl8Lyfcf5/mwRkBZOWjz1zkyQIk2YsdNrPoo5iRlGv6jz8zeSPpKOKFPVALrS6vxM2IP10PPaLcdRiJCVJRW84+prHeYITmvnfemLp49tWnh1uZsp42uKBP93H6l17wm1A8RHBm1sVcUB4Wpd4kbT5fyQhYfjgt7zHjiu7xD/sKjGacpXu9T4x5HFfVJgOQbYrOSq8a1oNkWh277dsguR0EM3v4g8QZuhzoatq8OESQMl4GEVbTDrJVbDfsFhCaNwPekxBAkz63vMR+JxagK85IsAS5IIAUr9Ef7QmJDoldYWOqWVWIchXHJpDCh28AndU9GRK7D7kme8UjJr9OjYbkcu6/jXPMq24jlwrWmw+h/om0RqKogOde/rqSdTkks6c18ZsfEKU1XoL2ziXAotRd9GEreLRt11PRclPpYJOyOkUJLZWuJ9fZA99vQrnakt7RBtH44PFFMhjSEMgAlrKSRo2KFn+buQd1WhoyzFpuaamA9rQCApGl7LRIVNqS1VRCXb0SoxEYgwLlaKRCOUaNNrqUm0dqmmrb6YyzHoZMkP7J4oO5TBHlzc73IgCtWREUL8Q+KcmBA7X9WIQRbQDs=
 
+  # live repo upload only when tagged
   - provider: pypi
     server: https://upload.pypi.org/legacy/
-    # force version bump on a tag
-    skip-existing: false
+    skip-existing: false  # force version bump on a tag
     distributions: sdist bdist_wheel
     on:
       branch: master

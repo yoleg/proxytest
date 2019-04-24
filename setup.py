@@ -30,9 +30,10 @@ install_requires = [
 ]
 
 # requirements for optional backends, e.g. pip install proxytest[aiohttp]
+# minor versions should be backwards-compatible, but major version may not be
 extras_require = {
-    'aiohttp': ['aiohttp'],
-    'requests': ['requests'],
+    'aiohttp': ['aiohttp>=3.5.0,<4.0'],
+    'requests': ['requests>=2.21.0,<3.0'],
 }
 
 # install all packaged backends: pip install proxytest[all]
