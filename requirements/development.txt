@@ -4,8 +4,5 @@
 # testing
 pytest
 
-# syntax
-flake8
-
 # package upload
 twine

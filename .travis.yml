@@ -17,7 +17,7 @@ matrix:
     - python: "3.4"  # TODO: ignore only flake8 syntax errors in asyncio backend
 
 # command to install dependencies
-install: "pip install -r requirements/development.txt"
+install: "pip install -r requirements/travis.txt"
 
 before_script:
   - pip install flake8

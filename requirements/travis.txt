@@ -1,0 +1,3 @@
+# only essential packages for travis
+
+-r base-dev.txt
